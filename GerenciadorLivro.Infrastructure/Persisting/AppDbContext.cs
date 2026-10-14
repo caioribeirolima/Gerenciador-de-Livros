@@ -1,5 +1,6 @@
 ﻿using GerenciadorLivro.Application.Common.Interfaces;
 using GerenciadorLivro.Core.Entities;
+using GerenciadorLivro.Infrastructure.Persisting.Configurations;
 using Microsoft.EntityFrameworkCore;
 
 namespace GerenciadorLivro.Infrastructure.Persisting
@@ -14,6 +15,7 @@ namespace GerenciadorLivro.Infrastructure.Persisting
         public DbSet<Autor> Autores { get; set; }
         public DbSet<Emprestimo> Emprestimos { get; set; }
         public DbSet<Usuario> Usuarios { get; set; }
+        public DbSet<Reserva> Reservas { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -48,6 +50,8 @@ namespace GerenciadorLivro.Infrastructure.Persisting
                 .WithMany(u => u.Emprestimos)
                 .HasForeignKey(e => e.UsuarioId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.ApplyConfiguration(new ReservaConfiguration());
         }
     }
 }

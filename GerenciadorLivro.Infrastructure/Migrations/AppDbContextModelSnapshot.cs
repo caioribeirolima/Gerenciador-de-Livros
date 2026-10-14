@@ -158,6 +158,53 @@ namespace GerenciadorLivro.Infrastructure.Migrations
                     b.ToTable("Livros");
                 });
 
+            modelBuilder.Entity("GerenciadorLivro.Core.Entities.Reserva", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("DataEncerramento")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DataNotificacao")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("DataReserva")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("LivroId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LivroId")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Reservas_LivroId_Notificada")
+                        .HasFilter("[Status] = 'Notificada'");
+
+                    b.HasIndex("UsuarioId");
+
+                    b.HasIndex("LivroId", "UsuarioId")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Reservas_LivroId_UsuarioId_Pendente")
+                        .HasFilter("[Status] IN ('Ativa', 'Notificada')");
+
+                    b.HasIndex("LivroId", "Status", "DataReserva");
+
+                    b.ToTable("Reservas");
+                });
+
             modelBuilder.Entity("GerenciadorLivro.Core.Entities.Usuario", b =>
                 {
                     b.Property<int>("Id")
@@ -232,6 +279,25 @@ namespace GerenciadorLivro.Infrastructure.Migrations
                     b.Navigation("Editora");
                 });
 
+            modelBuilder.Entity("GerenciadorLivro.Core.Entities.Reserva", b =>
+                {
+                    b.HasOne("GerenciadorLivro.Core.Entities.Livro", "Livro")
+                        .WithMany("Reservas")
+                        .HasForeignKey("LivroId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("GerenciadorLivro.Core.Entities.Usuario", "Usuario")
+                        .WithMany("Reservas")
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Livro");
+
+                    b.Navigation("Usuario");
+                });
+
             modelBuilder.Entity("GerenciadorLivro.Core.Entities.Categoria", b =>
                 {
                     b.Navigation("Livros");
@@ -245,11 +311,15 @@ namespace GerenciadorLivro.Infrastructure.Migrations
             modelBuilder.Entity("GerenciadorLivro.Core.Entities.Livro", b =>
                 {
                     b.Navigation("Emprestimos");
+
+                    b.Navigation("Reservas");
                 });
 
             modelBuilder.Entity("GerenciadorLivro.Core.Entities.Usuario", b =>
                 {
                     b.Navigation("Emprestimos");
+
+                    b.Navigation("Reservas");
                 });
 #pragma warning restore 612, 618
         }

@@ -31,6 +31,7 @@ namespace GerenciadorLivro.Core.Entities
         public bool Excluido { get; set; } = false;
         public List<Autor> Autores { get; set; } = new List<Autor>();
         public List<Emprestimo> Emprestimos { get; set; } = new List<Emprestimo>();
+        public List<Reserva> Reservas { get; set; } = new List<Reserva>();
 
 
     }

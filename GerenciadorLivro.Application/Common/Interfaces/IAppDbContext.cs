@@ -11,6 +11,7 @@ namespace GerenciadorLivro.Application.Common.Interfaces
         DbSet<Emprestimo> Emprestimos { get; }
         DbSet<Usuario> Usuarios { get; }
         DbSet<Editora> Editoras { get; }
+        DbSet<Reserva> Reservas { get; }
         Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     }
 }
