@@ -1,8 +1,9 @@
-﻿using GerenciadorLivro.Application.Common;
+using GerenciadorLivro.Application.Common;
 using GerenciadorLivro.Application.Common.Interfaces;
 using GerenciadorLivro.Core.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace GerenciadorLivro.Application.Commands.RegistrarEmprestimo
 {
@@ -10,10 +11,10 @@ namespace GerenciadorLivro.Application.Commands.RegistrarEmprestimo
     {
         private readonly IAppDbContext _dbContext;
         private readonly EmprestimoSettings _emprestimoSettings;
-        public RegistrarEmprestimoHandler(IAppDbContext dbContext, EmprestimoSettings emprestimoSettings)
+        public RegistrarEmprestimoHandler(IAppDbContext dbContext, IOptions<EmprestimoSettings> emprestimoSettings)
         {
             _dbContext = dbContext;
-            _emprestimoSettings = emprestimoSettings;
+            _emprestimoSettings = emprestimoSettings.Value;
         }
 
         public async Task<Result<int>> Handle(RegistrarEmprestimoCommand command, CancellationToken cancellationToken)
@@ -27,6 +28,37 @@ namespace GerenciadorLivro.Application.Commands.RegistrarEmprestimo
                 return Result<int>.Falha($"Livro de id {command.LivroId} não está disponivel");
             }
 
+            var usuarioExiste = await _dbContext.Usuarios
+                .AnyAsync(u => u.Id == command.UsuarioId, cancellationToken);
+
+            if (!usuarioExiste)
+            {
+                return Result<int>.Falha($"Usuário de id {command.UsuarioId} não encontrado");
+            }
+
+            var reservaNotificadaDeOutro = await _dbContext.Reservas
+                .AnyAsync(r => r.LivroId == command.LivroId
+                            && r.Status == StatusReserva.Notificada
+                            && r.UsuarioId != command.UsuarioId, cancellationToken);
+
+            if (reservaNotificadaDeOutro)
+            {
+                return Result<int>.Falha($"Livro de id {command.LivroId} está reservado para outro usuário");
+            }
+
+            // Se quem está pegando o livro é o dono da reserva, ela foi atendida.
+            var reservaDoUsuario = await _dbContext.Reservas
+                .Where(r => r.LivroId == command.LivroId
+                         && r.UsuarioId == command.UsuarioId
+                         && (r.Status == StatusReserva.Notificada || r.Status == StatusReserva.Ativa))
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (reservaDoUsuario != null)
+            {
+                reservaDoUsuario.Status = StatusReserva.Atendida;
+                reservaDoUsuario.DataEncerramento = DateTime.Now;
+            }
+
             var emprestimo = new Emprestimo
             {
                 LivroId = command.LivroId,
@@ -38,7 +70,9 @@ namespace GerenciadorLivro.Application.Commands.RegistrarEmprestimo
             livro.Disponivel = false;
             _dbContext.Livros.Update(livro);
 
-            await _dbContext.Emprestimos.AddAsync(emprestimo);
+            await _dbContext.Emprestimos.AddAsync(emprestimo, cancellationToken);
+
+            // Empréstimo, livro e reserva vão juntos no mesmo SaveChanges (uma transação).
             await _dbContext.SaveChangesAsync(cancellationToken);
 
             return Result<int>.Ok(emprestimo.Id);
