@@ -1,0 +1,20 @@
+## Visual Studio / .NET
+bin/
+obj/
+.vs/
+*.user
+*.suo
+*.userprefs
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+*.log
+TestResults/
+## Editores
+.idea/
+.vscode/
+## Projeto
+Uploads/
+appsettings.Local.json
+secrets.json

@@ -1,5 +1,6 @@
 using GerenciadorLivro.Application.Common;
 using GerenciadorLivro.Application.Common.Interfaces;
+using GerenciadorLivro.Application.Notifications.LivroCriado;
 using GerenciadorLivro.Core.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -9,9 +10,11 @@ namespace GerenciadorLivro.Application.Commands.CriarLivro
     public class CriarLivroHandler : IRequestHandler<CriarLivroCommand, Result<int>>
     {
         private readonly IAppDbContext _dbContext;
+        private readonly IPublisher _publisher;
 
-        public CriarLivroHandler(IAppDbContext dbContext)
+        public CriarLivroHandler(IAppDbContext dbContext, IPublisher publisher)
         {
+            _publisher = publisher;
             _dbContext = dbContext;
         }
 
@@ -35,6 +38,8 @@ namespace GerenciadorLivro.Application.Commands.CriarLivro
 
             _dbContext.Livros.Add(livro);
             await _dbContext.SaveChangesAsync(cancellationToken);
+
+            await _publisher.Publish(new LivroCriadoNotification(livro.Id, livro.Titulo), cancellationToken);
 
             return Result<int>.Ok(livro.Id);
         }

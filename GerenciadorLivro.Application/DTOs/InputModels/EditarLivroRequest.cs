@@ -6,7 +6,7 @@ namespace GerenciadorLivro.Application.DTOs.InputModels
     {
         [Required]
         [StringLength(200, ErrorMessage = "Máximo de caracteres permitido: 200")]
-        public string Titulo { get; set; }
+        public string Titulo { get; set; } = string.Empty;
 
         public int AnoPublicacao { get; set; }
         public int CategoriaId { get; set; }

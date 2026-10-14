@@ -6,6 +6,6 @@ namespace GerenciadorLivro.Application.DTOs.InputModels
     {
         [Required]
         [StringLength(100)]
-        public string Nome { get; set; }
+        public string Nome { get; set; } = string.Empty;
     }
 }

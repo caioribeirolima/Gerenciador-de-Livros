@@ -1,4 +1,5 @@
 using GerenciadorLivro.Application.Commands.CriarLivro;
+using GerenciadorLivro.Application.Common.Behaviors;
 using GerenciadorLivro.Application.Common.Interfaces;
 using GerenciadorLivro.Application.Interfaces;
 using GerenciadorLivro.Core.Entities;
@@ -25,14 +26,15 @@ namespace GerenciadorLivro.API
             builder.Services.AddDbContext<AppDbContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
 
-            builder.Services.AddScoped<IEmprestimoService, EmprestimoService>();
-            builder.Services.AddScoped<ICategoriaService, CategoriaService>();
+            builder.Services.AddMediatR(cfg =>
+            {
+                cfg.RegisterServicesFromAssembly(typeof(CriarLivroCommand).Assembly);
+                cfg.AddOpenBehavior(typeof(LoggingBehavior<,>));
+            });
+
             builder.Services.AddScoped<IEditoraService, EditoraService>();
 
             builder.Services.AddScoped<IAppDbContext>(sp => sp.GetRequiredService<AppDbContext>());
-
-            builder.Services.AddMediatR(cfg =>
-                cfg.RegisterServicesFromAssembly(typeof(CriarLivroCommand).Assembly));
 
             builder.Services.Configure<EmprestimoSettings>(
                 builder.Configuration.GetSection("EmprestimoSettings"));

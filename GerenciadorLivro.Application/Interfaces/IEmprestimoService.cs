@@ -1,5 +1,6 @@
 ﻿using GerenciadorLivro.Application.Common;
 using GerenciadorLivro.Application.DTOs.InputModels;
+using GerenciadorLivro.Application.DTOs.ViewModels;
 using GerenciadorLivro.Core.Entities;
 
 namespace GerenciadorLivro.Application.Interfaces

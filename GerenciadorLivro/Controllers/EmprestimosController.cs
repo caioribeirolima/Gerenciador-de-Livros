@@ -1,10 +1,11 @@
-﻿using GerenciadorLivro.Application.Common;
+﻿using GerenciadorLivro.Application.Commands.DevolverEmprestimo;
+using GerenciadorLivro.Application.Commands.RegistrarEmprestimo;
 using GerenciadorLivro.Application.DTOs.InputModels;
-using GerenciadorLivro.Application.Interfaces;
-using GerenciadorLivro.Core.Entities;
-using GerenciadorLivro.Services;
+using GerenciadorLivro.Application.Queries.ListarEmprestimosAtivos;
+using GerenciadorLivro.Application.Queries.ListarEmprestimosAtrasados;
+using GerenciadorLivro.Application.Queries.ObterEmprestimoPorId;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
 
 namespace GerenciadorLivro.API.Controllers
 {
@@ -12,81 +13,84 @@ namespace GerenciadorLivro.API.Controllers
     [ApiController]
     public class EmprestimosController : ControllerBase
     {
-        private readonly EmprestimoSettings _emprestimoSettings;
-        private readonly IEmprestimoService _emprestimoService;
+        private readonly IMediator _mediator;
 
-        public EmprestimosController(
-            IEmprestimoService emprestimoService,
-            IOptions<EmprestimoSettings> emprestimoSettings)
+        public EmprestimosController(IMediator mediator)
         {
-            _emprestimoService = emprestimoService;
-            _emprestimoSettings = emprestimoSettings.Value;
+            _mediator = mediator;
         }
-
 
         [HttpPost]
-        public async Task<ActionResult> CriarEmprestimoAsync(CriarEmprestimoRequest model)
+        public async Task<ActionResult> CriarAsync(CriarEmprestimoRequest request)
         {
-            var resultado = await _emprestimoService.CriarEmprestimoAsync(model);
-
-            if (!resultado.Sucesso)
+            var result = await _mediator.Send(new RegistrarEmprestimoCommand
             {
-                return BadRequest(new ProblemDetails { Title = "Empréstimo inválido", Detail = resultado.Erro });
+                LivroId = request.LivroId,
+                UsuarioId = request.UsuarioId,
+            });
+
+            if (!result.Sucesso)
+            {
+                return BadRequest(new ProblemDetails
+                {
+                    Title = "Erro ao registrar empréstimo",
+                    Detail = result.Erro,
+                    Status = StatusCodes.Status400BadRequest,
+                });
             }
 
-            return CreatedAtAction("BuscarPorId", new { id = resultado.Valor!.Id }, resultado.Valor);
+            return CreatedAtRoute("BuscarEmprestimoPorId", new { id = result.Valor }, new { id = result.Valor });
         }
-
 
         [HttpGet("{id}", Name = "BuscarEmprestimoPorId")]
         public async Task<ActionResult> BuscarPorIdAsync(int id)
         {
+            var result = await _mediator.Send(new ObterEmprestimoPorIdQuery { Id = id });
 
-            var resultado = await _emprestimoService.BuscarPorIdAsync(id);
+            if (!result.Sucesso)
+                return NotFound(new ProblemDetails
+                {
+                    Title = "Empréstimo não encontrado",
+                    Detail = result.Erro,
+                    Status = StatusCodes.Status404NotFound,
+                });
 
-            if (!resultado.Sucesso)
-                return NotFound(new ProblemDetails { Title = "Empréstimo não encontrado", Detail = resultado.Erro });
-
-            return Ok(resultado.Valor);
-
+            return Ok(result.Valor);
         }
-
 
         [HttpGet("ativos")]
         public async Task<ActionResult> ListarEmprestimosAtivosAsync()
         {
-            var resultado = await _emprestimoService.ListarEmprestimosAtivosAsync();
-
-            return Ok(resultado);
+            var result = await _mediator.Send(new ListarEmprestimosAtivosQuery());
+            return Ok(result);
         }
-
 
         [HttpGet("atrasados")]
         public async Task<ActionResult> ListarEmprestimosAtrasadosAsync()
         {
-            var resultado = await _emprestimoService.ListarEmprestimosAtrasadosAsync();
-
-            return Ok(resultado);
+            var result = await _mediator.Send(new ListarEmprestimosAtrasadosQuery());
+            return Ok(result);
         }
-
 
         [HttpPut("{id}/devolver")]
         public async Task<ActionResult> DevolverLivroAsync(int id)
         {
-            var resultado = await _emprestimoService.DevolverLivroAsync(id);
-
-            if (!resultado.Sucesso)
+            var result = await _mediator.Send(new DevolverEmprestimoCommand
             {
-                return NotFound(new ProblemDetails
+                EmprestimoId = id,
+            });
+
+            if (!result.Sucesso)
+            {
+                return BadRequest(new ProblemDetails
                 {
-                    Title = "Não foi possível devolver o livro",
-                    Detail = resultado.Erro
+                    Title = "Erro ao devolver empréstimo",
+                    Detail = result.Erro,
+                    Status = StatusCodes.Status400BadRequest,
                 });
             }
+
             return NoContent();
-
-
         }
-
     }
 }

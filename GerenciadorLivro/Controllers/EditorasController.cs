@@ -23,7 +23,7 @@ namespace GerenciadorLivro.Controllers
         public async Task<ActionResult> CriarAsync(CriarEditoraRequest request)
         {
             var editora = await _editoraService.CriarAsync(request);
-            return CreatedAtAction(nameof(ListarTodosAsync), new { id = editora.Id }, editora);
+            return StatusCode(StatusCodes.Status201Created, editora);
         }
     }
 }

@@ -7,6 +7,9 @@ namespace GerenciadorLivro.Application.Common.Interfaces
     {
         DbSet<Livro> Livros { get; }
         DbSet<Autor> Autores { get; }
+        DbSet<Categoria> Categorias { get; }
+        DbSet<Emprestimo> Emprestimos { get; set; }
+        DbSet<Usuario> Usuarios { get; set; }
         Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     }
 }
