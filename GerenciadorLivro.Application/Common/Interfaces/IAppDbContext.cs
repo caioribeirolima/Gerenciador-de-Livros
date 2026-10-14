@@ -8,8 +8,9 @@ namespace GerenciadorLivro.Application.Common.Interfaces
         DbSet<Livro> Livros { get; }
         DbSet<Autor> Autores { get; }
         DbSet<Categoria> Categorias { get; }
-        DbSet<Emprestimo> Emprestimos { get; set; }
-        DbSet<Usuario> Usuarios { get; set; }
+        DbSet<Emprestimo> Emprestimos { get; }
+        DbSet<Usuario> Usuarios { get; }
+        DbSet<Editora> Editoras { get; }
         Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     }
 }

@@ -8,7 +8,7 @@ namespace GerenciadorLivro.Core.Entities
 
         [Required]
         [StringLength(150, ErrorMessage = "O nome do autor deve ter no máximo 150 caracteres.")]
-        public string Nome { get; set; }
+        public string Nome { get; set; } = string.Empty;
 
         public List<Livro> Livros { get; set; } = new List<Livro>();
     }

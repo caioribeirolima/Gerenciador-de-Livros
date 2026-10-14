@@ -1,12 +1,9 @@
 using GerenciadorLivro.Application.Commands.CriarLivro;
 using GerenciadorLivro.Application.Common.Behaviors;
 using GerenciadorLivro.Application.Common.Interfaces;
-using GerenciadorLivro.Application.Interfaces;
 using GerenciadorLivro.Core.Entities;
 using GerenciadorLivro.Exceptions;
 using GerenciadorLivro.Infrastructure.Persisting;
-using GerenciadorLivro.Infrastructure.Services;
-using GerenciadorLivro.Services;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -30,9 +27,8 @@ namespace GerenciadorLivro.API
             {
                 cfg.RegisterServicesFromAssembly(typeof(CriarLivroCommand).Assembly);
                 cfg.AddOpenBehavior(typeof(LoggingBehavior<,>));
+                cfg.AddOpenBehavior(typeof(PerformanceBehavior<,>));
             });
-
-            builder.Services.AddScoped<IEditoraService, EditoraService>();
 
             builder.Services.AddScoped<IAppDbContext>(sp => sp.GetRequiredService<AppDbContext>());
 
@@ -40,6 +36,8 @@ namespace GerenciadorLivro.API
                 builder.Configuration.GetSection("EmprestimoSettings"));
             builder.Services.Configure<UploadSettings>(
                 builder.Configuration.GetSection("UploadSettings"));
+            builder.Services.Configure<PerformanceSettings>(
+                builder.Configuration.GetSection("PerformanceSettings"));
 
             var app = builder.Build();
 

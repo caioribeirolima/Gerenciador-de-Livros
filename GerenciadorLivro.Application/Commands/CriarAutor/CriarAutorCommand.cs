@@ -5,5 +5,6 @@ namespace GerenciadorLivro.Application.Commands.CriarAutor
 {
     public class CriarAutorCommand : IRequest<Result<int>>
     {
+        public string Nome { get; set; } = string.Empty;
     }
 }

@@ -1,5 +1,10 @@
+using GerenciadorLivro.Application.Commands.CriarEditora;
+using GerenciadorLivro.Application.Commands.ExcluirEditora;
+using GerenciadorLivro.Application.Common;
 using GerenciadorLivro.Application.DTOs.InputModels;
-using GerenciadorLivro.Services;
+using GerenciadorLivro.Application.DTOs.ViewModels;
+using GerenciadorLivro.Application.Queries.ListarEditoras;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GerenciadorLivro.Controllers
@@ -8,22 +13,64 @@ namespace GerenciadorLivro.Controllers
     [ApiController]
     public class EditorasController : ControllerBase
     {
-        private readonly IEditoraService _editoraService;
+        private readonly IMediator _mediator;
 
-        public EditorasController(IEditoraService editoraService)
+        public EditorasController(IMediator mediator)
         {
-            _editoraService = editoraService;
+            _mediator = mediator;
         }
 
         [HttpGet]
-        public async Task<ActionResult> ListarTodosAsync()
-            => Ok(await _editoraService.ListarTodosAsync());
+        public async Task<ActionResult<List<EditorasResponse>>> ListarTodosAsync(
+            [FromQuery] int pagina = 1,
+            [FromQuery] int tamanhoPagina = 10)
+        {
+            var result = await _mediator.Send(new ListarEditorasQuery
+            {
+                Pagina = pagina,
+                TamanhoPagina = tamanhoPagina,
+            });
+
+            return Ok(result);
+        }
 
         [HttpPost]
         public async Task<ActionResult> CriarAsync(CriarEditoraRequest request)
         {
-            var editora = await _editoraService.CriarAsync(request);
-            return StatusCode(StatusCodes.Status201Created, editora);
+            var result = await _mediator.Send(new CriarEditoraCommand
+            {
+                Nome = request.Nome,
+            });
+
+            if (!result.Sucesso)
+            {
+                return BadRequest(new ProblemDetails
+                {
+                    Title = "Erro ao criar editora",
+                    Detail = result.Erro,
+                    Status = StatusCodes.Status400BadRequest,
+                });
+            }
+
+            return Created($"/api/editoras/{result.Valor}", new { id = result.Valor });
+        }
+
+        [HttpDelete("{id:int}")]
+        public async Task<ActionResult> ExcluirAsync(int id)
+        {
+            var result = await _mediator.Send(new ExcluirEditoraCommand { Id = id });
+
+            if (!result.Sucesso)
+            {
+                return BadRequest(new ProblemDetails
+                {
+                    Title = "Erro ao excluir editora",
+                    Detail = result.Erro,
+                    Status = StatusCodes.Status400BadRequest,
+                });
+            }
+
+            return NoContent();
         }
     }
 }
