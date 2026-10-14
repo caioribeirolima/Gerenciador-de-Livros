@@ -6,32 +6,32 @@ using Microsoft.EntityFrameworkCore;
 
 namespace GerenciadorLivro.Application.Queries.ObterAutorPorId
 {
-    public class ObterAutorPorIdHandler : IRequestHandler<ObterAutorPorIdQuery, Result<AutorResponse>>
+    public class ObterAutorPorIdHandler : IRequestHandler<ObterAutorPorIdQuery, Result<AutorDetalhesResponse>>
     {
         private readonly IAppDbContext _dbContext;
         public ObterAutorPorIdHandler(IAppDbContext dbContext) => _dbContext = dbContext;
 
-        public async Task<Result<AutorResponse>> Handle(ObterAutorPorIdQuery query, CancellationToken cancellationToken)
+        public async Task<Result<AutorDetalhesResponse>> Handle(ObterAutorPorIdQuery query, CancellationToken cancellationToken)
         {
             var autor = await _dbContext.Autores
                 .AsNoTracking()
                 .Where(a => a.Id == query.Id)
-                .Select(a => new AutorResponse
+                .Select(a => new AutorDetalhesResponse
                 {
                     Id = a.Id,
                     Nome = a.Nome,
-                    QuantidadeLivros = _dbContext.Livros
-                    .Where(l => l.Autores.Any(at => at.Id == a.Id))
-                    .ToList()
+                    Livros = a.Livros
+                        .Select(l => new LivroResumoResponse { Id = l.Id, Titulo = l.Titulo })
+                        .ToList()
                 })
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (autor == null)
             {
-                return Result<AutorResponse>.Falha($"Autor de id {query.Id} não encontrado");
+                return Result<AutorDetalhesResponse>.Falha($"Autor de id {query.Id} não encontrado");
             }
 
-            return Result<AutorResponse>.Ok(autor);
+            return Result<AutorDetalhesResponse>.Ok(autor);
         }
     }
 }

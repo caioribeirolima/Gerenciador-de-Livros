@@ -21,7 +21,7 @@ namespace GerenciadorLivro.API.Controllers
 
 
         [HttpGet("{id}", Name = "ObterAutorPorId")]
-        public async Task<ActionResult<AutorResponse>> ObterPorIdAsync(int id)
+        public async Task<ActionResult<AutorDetalhesResponse>> ObterPorIdAsync(int id)
         {
             var result = await _mediator.Send(new ObterAutorPorIdQuery { Id = id });
 

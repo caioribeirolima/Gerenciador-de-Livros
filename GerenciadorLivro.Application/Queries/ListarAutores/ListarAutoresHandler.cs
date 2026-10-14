@@ -33,9 +33,7 @@ namespace GerenciadorLivro.Application.Queries.ListarAutores
                 {
                     Id = a.Id,
                     Nome = a.Nome,
-                    QuantidadeLivros = _dbContext.Livros
-                    .Where(l => l.Autores.Any(at => at.Id == a.Id))
-                    .ToList()
+                    QuantidadeLivros = a.Livros.Count
                 })
                 .ToListAsync(cancellationToken);
 

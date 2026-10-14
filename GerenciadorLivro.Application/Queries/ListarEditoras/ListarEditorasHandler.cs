@@ -26,9 +26,7 @@ namespace GerenciadorLivro.Application.Queries.ListarEditoras
                 {
                     Id = e.Id,
                     Nome = e.Nome,
-                    QuantidadeLivros = _dbContext.Livros
-                    .Where(l => l.EditoraId == e.Id)
-                    .ToList()
+                    QuantidadeLivros = e.Livros.Count
                 })
                 .ToListAsync(cancellationToken);
 

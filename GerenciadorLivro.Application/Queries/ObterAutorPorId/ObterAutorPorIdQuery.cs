@@ -4,7 +4,7 @@ using MediatR;
 
 namespace GerenciadorLivro.Application.Queries.ObterAutorPorId
 {
-    public class ObterAutorPorIdQuery : IRequest<Result<AutorResponse>>
+    public class ObterAutorPorIdQuery : IRequest<Result<AutorDetalhesResponse>>
     {
         public int Id { get; set; }
     }
