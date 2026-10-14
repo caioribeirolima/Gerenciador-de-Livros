@@ -76,8 +76,18 @@ namespace GerenciadorLivro.Application.Notifications.Reservas
             }
             catch (DbUpdateException ex)
             {
-                // Outra requisição notificou alguém para este livro ao mesmo tempo (índice único filtrado).
-                _logger.LogWarning(ex, "Não foi possível notificar a reserva {ReservaId} do livro {LivroId}", proxima.Id, livroId);
+                // O índice único filtrado barra duas Notificadas no mesmo livro. Mas só engolimos o erro
+                // se outra requisição realmente notificou alguém; qualquer outra falha de banco sobe.
+                var outraNotificada = await _dbContext.Reservas
+                    .AsNoTracking()
+                    .AnyAsync(r => r.LivroId == livroId && r.Status == StatusReserva.Notificada && r.Id != proxima.Id, cancellationToken);
+
+                if (!outraNotificada)
+                {
+                    throw;
+                }
+
+                _logger.LogWarning(ex, "Outra reserva já foi notificada para o livro {LivroId}; a reserva {ReservaId} segue na fila", livroId, proxima.Id);
                 return;
             }
 

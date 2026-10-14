@@ -73,8 +73,22 @@ namespace GerenciadorLivro.Application.Commands.ReservarLivro
             }
             catch (DbUpdateException)
             {
-                // Duas requisições iguais ao mesmo tempo passam pela checagem acima;
-                // o índice único filtrado barra a segunda no banco.
+                // Duas requisições iguais ao mesmo tempo passam pela checagem acima e o índice único
+                // filtrado barra a segunda. Mas DbUpdateException também é conexão caída, FK, timeout...
+                // Só tratamos como "duplicada" se a reserva pendente realmente existe; o resto sobe.
+                _dbContext.Reservas.Remove(reserva); // solta a reserva que falhou do rastreamento
+
+                var duplicadaAgora = await _dbContext.Reservas
+                    .AsNoTracking()
+                    .AnyAsync(r => r.LivroId == command.LivroId
+                                && r.UsuarioId == command.UsuarioId
+                                && (r.Status == StatusReserva.Ativa || r.Status == StatusReserva.Notificada), cancellationToken);
+
+                if (!duplicadaAgora)
+                {
+                    throw;
+                }
+
                 return Result<int>.Falha($"Usuário de id {command.UsuarioId} já possui uma reserva pendente para o livro de id {command.LivroId}");
             }
 

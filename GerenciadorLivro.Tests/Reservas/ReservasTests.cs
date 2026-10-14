@@ -176,6 +176,26 @@ namespace GerenciadorLivro.Tests.Reservas
             Assert.Equal(StatusReserva.Notificada, status);
         }
 
+        [Fact]
+        public async Task Devolver_LivroExcluidoComEmprestimoAberto_DevolucaoFunciona()
+        {
+            using var sp = Criar();
+            await sp.SemearAsync(db =>
+            {
+                var livro = Livro(1, false);
+                livro.Excluido = true; // soft delete: o filtro global esconde o livro das consultas comuns
+                db.Livros.Add(livro);
+                db.Usuarios.Add(Usuario(1));
+                db.Emprestimos.Add(EmprestimoAberto(1, 1, 1));
+            });
+
+            var result = await EnviarAsync(sp, new DevolverEmprestimoCommand { EmprestimoId = 1 });
+
+            Assert.True(result.Sucesso);
+            var devolvido = await sp.LerAsync(db => db.Emprestimos.Where(e => e.Id == 1).Select(e => e.DataDevolucaoReal).SingleAsync());
+            Assert.NotNull(devolvido);
+        }
+
         // ---------- RegistrarEmprestimo ----------
 
         [Fact]

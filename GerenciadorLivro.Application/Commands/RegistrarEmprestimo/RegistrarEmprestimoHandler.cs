@@ -23,9 +23,14 @@ namespace GerenciadorLivro.Application.Commands.RegistrarEmprestimo
                 .Where(l => l.Id == command.LivroId)
                 .FirstOrDefaultAsync(cancellationToken);
 
-            if (livro == null || livro.Disponivel == false)
+            if (livro == null)
             {
-                return Result<int>.Falha($"Livro de id {command.LivroId} não está disponivel");
+                return Result<int>.Falha($"Livro de id {command.LivroId} não encontrado");
+            }
+
+            if (!livro.Disponivel)
+            {
+                return Result<int>.Falha($"Livro de id {command.LivroId} não está disponível");
             }
 
             var usuarioExiste = await _dbContext.Usuarios
@@ -67,10 +72,9 @@ namespace GerenciadorLivro.Application.Commands.RegistrarEmprestimo
                 DataDevolucaoPrevista = DateTime.Now.AddDays(_emprestimoSettings.DiasParaDevolucao)
             };
 
+            // Livro e reserva já estão rastreados; só o empréstimo novo precisa ser adicionado.
             livro.Disponivel = false;
-            _dbContext.Livros.Update(livro);
-
-            await _dbContext.Emprestimos.AddAsync(emprestimo, cancellationToken);
+            _dbContext.Emprestimos.Add(emprestimo);
 
             // Empréstimo, livro e reserva vão juntos no mesmo SaveChanges (uma transação).
             await _dbContext.SaveChangesAsync(cancellationToken);

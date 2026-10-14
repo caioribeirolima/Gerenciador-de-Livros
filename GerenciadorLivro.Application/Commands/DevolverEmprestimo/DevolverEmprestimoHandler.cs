@@ -33,10 +33,10 @@ namespace GerenciadorLivro.Application.Commands.DevolverEmprestimo
                 return Result.Falha($"Empréstimo de id {command.EmprestimoId} já foi devolvido");
             }
 
-            resultado.DataDevolucaoReal = DateTime.Now;
-            _dbContext.Emprestimos.Update(resultado);
-
+            // IgnoreQueryFilters: o livro pode ter sido excluído (soft delete) com o empréstimo ainda aberto.
+            // Sem isso o filtro o esconderia e a devolução ficaria impossível.
             var livro = await _dbContext.Livros
+                .IgnoreQueryFilters()
                 .Where(l => l.Id == resultado.LivroId)
                 .FirstOrDefaultAsync(cancellationToken);
 
@@ -45,8 +45,9 @@ namespace GerenciadorLivro.Application.Commands.DevolverEmprestimo
                 return Result.Falha($"Livro vinculado ao empréstimo de id {resultado.LivroId} não foi encontrado");
             }
 
+            // As duas entidades já estão rastreadas: o SaveChanges grava as mudanças, sem Update.
+            resultado.DataDevolucaoReal = DateTime.Now;
             livro.Disponivel = true;
-            _dbContext.Livros.Update(livro);
 
             await _dbContext.SaveChangesAsync(cancellationToken);
 
