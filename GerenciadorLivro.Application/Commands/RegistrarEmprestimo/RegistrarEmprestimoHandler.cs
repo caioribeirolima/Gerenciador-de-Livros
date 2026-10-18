@@ -1,6 +1,7 @@
 using GerenciadorLivro.Application.Common;
 using GerenciadorLivro.Application.Common.Interfaces;
 using GerenciadorLivro.Core.Entities;
+using GerenciadorLivro.Core.Repositories;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -9,19 +10,29 @@ namespace GerenciadorLivro.Application.Commands.RegistrarEmprestimo
 {
     public class RegistrarEmprestimoHandler : IRequestHandler<RegistrarEmprestimoCommand, Result<int>>
     {
+        private readonly ILivroRepository _livroRepository;
+        private readonly IEmprestimoRepository _emprestimoRepository;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IAppDbContext _dbContext;
         private readonly EmprestimoSettings _emprestimoSettings;
-        public RegistrarEmprestimoHandler(IAppDbContext dbContext, IOptions<EmprestimoSettings> emprestimoSettings)
+
+        public RegistrarEmprestimoHandler(
+            ILivroRepository livroRepository,
+            IEmprestimoRepository emprestimoRepository,
+            IUnitOfWork unitOfWork,
+            IAppDbContext dbContext, 
+            IOptions<EmprestimoSettings> emprestimoSettings)
         {
+            _livroRepository = livroRepository;
+            _emprestimoRepository = emprestimoRepository;
+            _unitOfWork = unitOfWork;
             _dbContext = dbContext;
             _emprestimoSettings = emprestimoSettings.Value;
         }
 
         public async Task<Result<int>> Handle(RegistrarEmprestimoCommand command, CancellationToken cancellationToken)
         {
-            var livro = await _dbContext.Livros
-                .Where(l => l.Id == command.LivroId)
-                .FirstOrDefaultAsync(cancellationToken);
+            var livro = await _livroRepository.BuscarPorIdAsync(command.Id, cancellationToken);
 
             if (livro == null)
             {
@@ -51,7 +62,6 @@ namespace GerenciadorLivro.Application.Commands.RegistrarEmprestimo
                 return Result<int>.Falha($"Livro de id {command.LivroId} está reservado para outro usuário");
             }
 
-            // Se quem está pegando o livro é o dono da reserva, ela foi atendida.
             var reservaDoUsuario = await _dbContext.Reservas
                 .Where(r => r.LivroId == command.LivroId
                          && r.UsuarioId == command.UsuarioId
@@ -72,12 +82,10 @@ namespace GerenciadorLivro.Application.Commands.RegistrarEmprestimo
                 DataDevolucaoPrevista = DateTime.Now.AddDays(_emprestimoSettings.DiasParaDevolucao)
             };
 
-            // Livro e reserva já estão rastreados; só o empréstimo novo precisa ser adicionado.
             livro.Disponivel = false;
-            _dbContext.Emprestimos.Add(emprestimo);
+            _emprestimoRepository.Adicionar(emprestimo);
 
-            // Empréstimo, livro e reserva vão juntos no mesmo SaveChanges (uma transação).
-            await _dbContext.SaveChangesAsync(cancellationToken);
+            await _unitOfWork.CommitAsync(cancellationToken);
 
             return Result<int>.Ok(emprestimo.Id);
         }

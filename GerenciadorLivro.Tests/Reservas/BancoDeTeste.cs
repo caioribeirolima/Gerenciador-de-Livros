@@ -7,7 +7,6 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace GerenciadorLivro.Tests.Reservas
 {
-    // Monta o mesmo pipeline da API (MediatR + IAppDbContext) sobre um banco InMemory isolado por teste.
     public static class BancoDeTeste
     {
         public static ServiceProvider Criar(Action<IServiceCollection>? extras = null)

@@ -1,6 +1,7 @@
 using GerenciadorLivro.Application.Common;
 using GerenciadorLivro.Application.Common.Interfaces;
 using GerenciadorLivro.Application.Notifications.LivroDevolvido;
+using GerenciadorLivro.Core.Repositories;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,11 +11,13 @@ namespace GerenciadorLivro.Application.Commands.DevolverEmprestimo
     {
         private readonly IAppDbContext _dbContext;
         private readonly IPublisher _publisher;
+        private readonly IEmprestimoRepository _emprestimoRepository;
 
-        public DevolverEmprestimoHandler(IAppDbContext dbContext, IPublisher publisher)
+        public DevolverEmprestimoHandler(IAppDbContext dbContext, IPublisher publisher, IEmprestimoRepository emprestimoRepository)
         {
             _dbContext = dbContext;
             _publisher = publisher;
+            _emprestimoRepository = emprestimoRepository;
         }
 
         public async Task<Result> Handle(DevolverEmprestimoCommand command, CancellationToken cancellationToken)
