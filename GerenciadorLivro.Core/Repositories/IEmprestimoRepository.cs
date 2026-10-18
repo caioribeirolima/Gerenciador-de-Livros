@@ -5,5 +5,6 @@ namespace GerenciadorLivro.Core.Repositories
     public interface IEmprestimoRepository
     {
         void Adicionar(Emprestimo emprestimo);
+        Task<Emprestimo?> BuscarPorIdAsync(int id, CancellationToken cancellationToken);
     }
 }

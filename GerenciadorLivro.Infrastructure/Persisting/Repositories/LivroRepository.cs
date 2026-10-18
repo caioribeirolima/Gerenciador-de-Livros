@@ -1,5 +1,5 @@
 ﻿using GerenciadorLivro.Core.Entities;
-using GerenciadorLivro.Core.Repositories.Livros;
+using GerenciadorLivro.Core.Repositories;
 using Microsoft.EntityFrameworkCore;
 
 namespace GerenciadorLivro.Infrastructure.Persisting.Repositories
@@ -9,7 +9,7 @@ namespace GerenciadorLivro.Infrastructure.Persisting.Repositories
         private readonly AppDbContext _dbContext;
         public LivroRepository(AppDbContext dbContext) => _dbContext = dbContext;
 
-        public Task<Livro?> BuscarPorIdAsync(int id, CancellationToken cancellationToken)
-            => _dbContext.Livros.FirstOrDefaultAsync(l => l.Id == id, cancellationToken);
+        public async Task<Livro?> BuscarPorIdAsync(int id, CancellationToken cancellationToken)
+            => await _dbContext.Livros.FirstOrDefaultAsync(l => l.Id == id, cancellationToken);
     }
 }
