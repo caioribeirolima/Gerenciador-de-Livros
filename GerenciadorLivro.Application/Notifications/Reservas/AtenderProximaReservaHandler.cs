@@ -1,25 +1,33 @@
 using GerenciadorLivro.Application.Common.Interfaces;
 using GerenciadorLivro.Application.Notifications.LivroDevolvido;
 using GerenciadorLivro.Core.Entities;
+using GerenciadorLivro.Core.Repositories;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace GerenciadorLivro.Application.Notifications.Reservas
 {
-    // Quando o livro volta para a estante (devolução, ou a reserva Notificada foi cancelada),
-    // a primeira reserva Ativa por DataReserva vira Notificada.
     public class AtenderProximaReservaHandler :
         INotificationHandler<LivroDevolvidoNotification>,
         INotificationHandler<ReservaCanceladaNotification>
     {
-        private readonly IAppDbContext _dbContext;
+        private readonly ILivroRepository _livroRepository;
+        private readonly IReservaRepository _reservaRepository;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IPublisher _publisher;
         private readonly ILogger<AtenderProximaReservaHandler> _logger;
 
-        public AtenderProximaReservaHandler(IAppDbContext dbContext, IPublisher publisher, ILogger<AtenderProximaReservaHandler> logger)
+        public AtenderProximaReservaHandler(
+            ILivroRepository livroRepository,
+            IReservaRepository reservaRepository,
+            IUnitOfWork unitOfWork,
+            IPublisher publisher, 
+            ILogger<AtenderProximaReservaHandler> logger)
         {
-            _dbContext = dbContext;
+            _livroRepository = livroRepository;
+            _reservaRepository = reservaRepository;
+            _unitOfWork = unitOfWork;
             _publisher = publisher;
             _logger = logger;
         }
@@ -29,7 +37,6 @@ namespace GerenciadorLivro.Application.Notifications.Reservas
 
         public Task Handle(ReservaCanceladaNotification notification, CancellationToken cancellationToken)
         {
-            // Cancelar uma Ativa não libera o livro; cancelar a Notificada libera.
             if (notification.StatusAnterior != StatusReserva.Notificada)
             {
                 return Task.CompletedTask;
@@ -40,27 +47,25 @@ namespace GerenciadorLivro.Application.Notifications.Reservas
 
         private async Task AtenderProximaAsync(int livroId, CancellationToken cancellationToken)
         {
-            var livroDisponivel = await _dbContext.Livros
-                .AnyAsync(l => l.Id == livroId && l.Disponivel, cancellationToken);
+            var livroDisponivel = await _livroRepository
+                .VerificarLivroDisponivel(livroId, cancellationToken);
 
             if (!livroDisponivel)
             {
                 return;
             }
 
-            var jaExisteNotificada = await _dbContext.Reservas
-                .AnyAsync(r => r.LivroId == livroId && r.Status == StatusReserva.Notificada, cancellationToken);
+            var jaExisteNotificada = await _reservaRepository
+                .ExisteReservaLivroNotificada(livroId, cancellationToken);
 
             if (jaExisteNotificada)
             {
                 return;
             }
 
-            var proxima = await _dbContext.Reservas
-                .Where(r => r.LivroId == livroId && r.Status == StatusReserva.Ativa)
-                .OrderBy(r => r.DataReserva)
-                .ThenBy(r => r.Id)
-                .FirstOrDefaultAsync(cancellationToken);
+            var proxima = await _reservaRepository
+                .BuscarReservaAtivaOrdenadaPorNome(livroId, cancellationToken);
+
 
             if (proxima == null)
             {
@@ -72,26 +77,29 @@ namespace GerenciadorLivro.Application.Notifications.Reservas
 
             try
             {
-                await _dbContext.SaveChangesAsync(cancellationToken);
+                await _unitOfWork.CommitAsync(cancellationToken);
             }
             catch (DbUpdateException ex)
             {
-                // O índice único filtrado barra duas Notificadas no mesmo livro. Mas só engolimos o erro
-                // se outra requisição realmente notificou alguém; qualquer outra falha de banco sobe.
-                var outraNotificada = await _dbContext.Reservas
-                    .AsNoTracking()
-                    .AnyAsync(r => r.LivroId == livroId && r.Status == StatusReserva.Notificada && r.Id != proxima.Id, cancellationToken);
-
+                var outraNotificada = await _reservaRepository
+                    .ExisteReservaNotificadaDeOutroUsuarioAsync(livroId, proxima.UsuarioId, cancellationToken);
+                
                 if (!outraNotificada)
                 {
                     throw;
                 }
 
-                _logger.LogWarning(ex, "Outra reserva já foi notificada para o livro {LivroId}; a reserva {ReservaId} segue na fila", livroId, proxima.Id);
+                _logger.LogWarning(
+                    ex, 
+                    "Outra reserva já foi notificada para o livro {LivroId}; a reserva {ReservaId} segue na fila", 
+                    livroId, proxima.Id);
+
                 return;
             }
 
-            await _publisher.Publish(new ReservaNotificadaNotification(proxima.Id, proxima.LivroId, proxima.UsuarioId), cancellationToken);
+            await _publisher.Publish(
+                new ReservaNotificadaNotification(
+                    proxima.Id, proxima.LivroId, proxima.UsuarioId), cancellationToken);
         }
     }
 }

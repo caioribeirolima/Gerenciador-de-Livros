@@ -38,6 +38,8 @@ namespace GerenciadorLivro.API
             builder.Services.AddScoped<IReservaRepository, ReservaRepository>();
             builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
             builder.Services.AddScoped<ICategoriaRepository, CategoriaRepository>();
+            services.AddScoped<IEditoraRepository, EditoraRepository>();
+            services.AddScoped<IAutorRepository, AutorRepository>();
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             builder.Services.Configure<EmprestimoSettings>(

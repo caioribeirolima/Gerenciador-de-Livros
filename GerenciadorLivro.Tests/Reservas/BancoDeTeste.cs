@@ -24,6 +24,8 @@ namespace GerenciadorLivro.Tests.Reservas
             services.AddScoped<IReservaRepository, ReservaRepository>();
             services.AddScoped<IUsuarioRepository, UsuarioRepository>();
             services.AddScoped<ICategoriaRepository, CategoriaRepository>();
+            services.AddScoped<IEditoraRepository, EditoraRepository>();
+            services.AddScoped<IAutorRepository, AutorRepository>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.Configure<EmprestimoSettings>(s => s.DiasParaDevolucao = 7);
             services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(ReservarLivroCommand).Assembly));
