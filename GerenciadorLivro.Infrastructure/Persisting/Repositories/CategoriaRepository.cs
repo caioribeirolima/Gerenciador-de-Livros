@@ -1,7 +1,6 @@
-﻿using GerenciadorLivro.Core.Entities;
+using GerenciadorLivro.Core.Entities;
 using GerenciadorLivro.Core.Repositories;
 using Microsoft.EntityFrameworkCore;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace GerenciadorLivro.Infrastructure.Persisting.Repositories
 {
@@ -21,10 +20,7 @@ namespace GerenciadorLivro.Infrastructure.Persisting.Repositories
             return categoria;
         }
 
-        public async void CriarAsync(Categoria categoria, CancellationToken cancellationToken)
-        {
-            await _dbContext.Categorias.AddAsync(categoria, cancellationToken);
-        }
+        public void Adicionar(Categoria categoria) => _dbContext.Categorias.Add(categoria);
 
         public void EditarAsync(Categoria categoria, CancellationToken cancellationToken)
         {

@@ -42,7 +42,7 @@ namespace GerenciadorLivro.Application.Commands.CriarCategoria
                 Nome = stringLimpa,
             };
 
-            _categoriaRepository.CriarAsync(categoria, cancellationToken);
+            _categoriaRepository.Adicionar(categoria);
             
             await _unitOfWork.CommitAsync(cancellationToken);
             return Result<int>.Ok(categoria.Id);
