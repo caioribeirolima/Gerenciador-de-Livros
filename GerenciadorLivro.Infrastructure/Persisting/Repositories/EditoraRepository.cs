@@ -1,4 +1,4 @@
-﻿using GerenciadorLivro.Core.Entities;
+using GerenciadorLivro.Core.Entities;
 using GerenciadorLivro.Core.Repositories;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,9 +12,9 @@ namespace GerenciadorLivro.Infrastructure.Persisting.Repositories
             _dbContext = dbContext;
         }
 
-        public void AdicionarAsync(Editora editora, CancellationToken cancellationToken)
+        public void Adicionar(Editora editora)
         {
-            _dbContext.Editoras.AddAsync(editora, cancellationToken);
+            _dbContext.Editoras.AddAsync(editora);
         }
 
         public async Task<Editora?> BuscarPorIdAsync(int id, CancellationToken cancellationToken)
@@ -26,17 +26,12 @@ namespace GerenciadorLivro.Infrastructure.Persisting.Repositories
             return editora;
         }
 
-        public Task<Editora?> BuscarPorNomeAsync(int id, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void ExcluirAsync(Editora editora)
+        public void Excluir(Editora editora)
         {
             _dbContext.Editoras.Remove(editora);
         }
 
-        public async Task<bool> VerificarSeExiste(string nome, CancellationToken cancellationToken)
+        public async Task<bool> ExisteComNomeAsync(string nome, CancellationToken cancellationToken)
         {
             var exists = await _dbContext.Editoras
                 .Where(e => e.Nome.ToUpper() == nome.ToUpper())

@@ -1,8 +1,6 @@
 using GerenciadorLivro.Application.Common;
-using GerenciadorLivro.Application.Common.Interfaces;
 using GerenciadorLivro.Core.Repositories;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 
 namespace GerenciadorLivro.Application.Commands.ExcluirEditora
 {
@@ -37,7 +35,7 @@ namespace GerenciadorLivro.Application.Commands.ExcluirEditora
                 return Result.Falha("Existem livros vinculados a esta editora (incluindo livros excluídos)");
             }
 
-            _editoraRepository.ExcluirAsync(editora);
+            _editoraRepository.Excluir(editora);
 
             await _unitOfWork.CommitAsync(cancellationToken);
             return Result.Ok();

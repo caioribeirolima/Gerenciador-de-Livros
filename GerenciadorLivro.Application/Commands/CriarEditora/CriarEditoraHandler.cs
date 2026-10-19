@@ -33,7 +33,7 @@ namespace GerenciadorLivro.Application.Commands.CriarEditora
             }
 
             var exists = await _editoraRepository
-                .VerificarSeExiste(nome, cancellationToken);
+                .ExisteComNomeAsync(nome, cancellationToken);
 
             if (exists)
             {
@@ -45,7 +45,7 @@ namespace GerenciadorLivro.Application.Commands.CriarEditora
                 Nome = nome,
             };
 
-            _editoraRepository.AdicionarAsync(editora, cancellationToken);
+            _editoraRepository.Adicionar(editora);
             await _unitOfWork.CommitAsync(cancellationToken);
 
             return Result<int>.Ok(editora.Id);
