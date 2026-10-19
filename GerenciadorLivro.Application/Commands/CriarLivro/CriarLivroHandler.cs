@@ -1,10 +1,8 @@
 using GerenciadorLivro.Application.Common;
-using GerenciadorLivro.Application.Common.Interfaces;
 using GerenciadorLivro.Application.Notifications.LivroCriado;
 using GerenciadorLivro.Core.Entities;
 using GerenciadorLivro.Core.Repositories;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 
 namespace GerenciadorLivro.Application.Commands.CriarLivro
 {
