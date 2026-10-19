@@ -47,13 +47,13 @@ namespace GerenciadorLivro.Application.Commands.RegistrarEmprestimo
                 return Result<int>.Falha($"Usuário de id {command.UsuarioId} não encontrado");
 
             var reservaNotificadaDeOutro = await _reservaRepository
-                .VerificarReservaOutroUsuario(command.LivroId, command.UsuarioId, cancellationToken);
+                .ExisteReservaNotificadaDeOutroUsuarioAsync(command.LivroId, command.UsuarioId, cancellationToken);
 
             if (reservaNotificadaDeOutro)
                 return Result<int>.Falha($"Livro de id {command.LivroId} está reservado para outro usuário");
 
             var reservaDoUsuario = await _reservaRepository
-                .BuscarReservaAtivaPorUsuarioELivro(command.LivroId, command.UsuarioId, cancellationToken);
+                .BuscarReservaPendenteDoUsuarioAsync(command.LivroId, command.UsuarioId, cancellationToken);
 
             if (reservaDoUsuario != null)
             {

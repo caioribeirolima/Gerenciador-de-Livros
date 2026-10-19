@@ -1,7 +1,6 @@
 ﻿using GerenciadorLivro.Core.Entities;
 using GerenciadorLivro.Core.Repositories;
 using Microsoft.EntityFrameworkCore;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace GerenciadorLivro.Infrastructure.Persisting.Repositories
 {
@@ -16,7 +15,7 @@ namespace GerenciadorLivro.Infrastructure.Persisting.Repositories
             => await _dbContext.Emprestimos
             .FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
 
-        public async Task<bool> VerificarUsuarioComLivro(int livroId, int usuarioId, CancellationToken cancellationToken)
+        public async Task<bool> ExisteEmprestimoAbertoDoUsuarioAsync(int livroId, int usuarioId, CancellationToken cancellationToken)
         {
             var usuarioEstaComLivro = await _dbContext.Emprestimos
                 .AnyAsync(e => e.LivroId == livroId

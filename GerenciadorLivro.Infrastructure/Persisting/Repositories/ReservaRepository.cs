@@ -12,7 +12,7 @@ namespace GerenciadorLivro.Infrastructure.Persisting.Repositories
         public async Task<Reserva?> BuscarPorIdAsync(int id, CancellationToken cancellationToken)
             => await _dbContext.Reservas.FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
 
-        public async Task<Reserva?> BuscarReservaAtivaPorUsuarioELivro(int livroId, int usuarioId, CancellationToken cancellationToken)
+        public async Task<Reserva?> BuscarReservaPendenteDoUsuarioAsync(int livroId, int usuarioId, CancellationToken cancellationToken)
             => await _dbContext.Reservas
                 .FirstOrDefaultAsync(r => r.LivroId == livroId
                     && r.UsuarioId == usuarioId
@@ -21,20 +21,15 @@ namespace GerenciadorLivro.Infrastructure.Persisting.Repositories
         public void RemoverReserva(Reserva reserva)
             => _dbContext.Reservas.Remove(reserva);
 
-        public Reserva Reservar(int livroId, int usuarioId, CancellationToken cancellationToken)
-        {
-            var reserva = new Reserva(livroId, usuarioId, DateTime.Now);
-            _dbContext.Reservas.Add(reserva);
-            return reserva;
-        }
+        public void Adicionar(Reserva reserva) => _dbContext.Reservas.Add(reserva);
 
-        public async Task<bool> VerificarReservaDuplicada(int livroId, int usuarioId, CancellationToken cancellationToken)
+        public async Task<bool> ExisteReservaPendenteAsync(int livroId, int usuarioId, CancellationToken cancellationToken)
             => await _dbContext.Reservas
                 .AnyAsync(r => r.LivroId == livroId
                     && r.UsuarioId == usuarioId
                     && (r.Status == StatusReserva.Ativa || r.Status == StatusReserva.Notificada), cancellationToken);
 
-        public async Task<bool> VerificarReservaOutroUsuario(int livroId, int usuarioId, CancellationToken cancellationToken)
+        public async Task<bool> ExisteReservaNotificadaDeOutroUsuarioAsync(int livroId, int usuarioId, CancellationToken cancellationToken)
             => await _dbContext.Reservas
                 .AnyAsync(r => r.LivroId == livroId
                     && r.Status == StatusReserva.Notificada

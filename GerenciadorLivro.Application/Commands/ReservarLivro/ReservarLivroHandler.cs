@@ -1,4 +1,5 @@
 using GerenciadorLivro.Application.Common;
+using GerenciadorLivro.Core.Entities;
 using GerenciadorLivro.Core.Repositories;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -43,28 +44,29 @@ namespace GerenciadorLivro.Application.Commands.ReservarLivro
                 return Result<int>.Falha($"Usuário de id {command.UsuarioId} não encontrado");
             }
 
-            var guardadoParaOutroUsuario = await _reservaRepository.VerificarReservaOutroUsuario(command.LivroId, command.UsuarioId, cancellationToken);
+            var guardadoParaOutroUsuario = await _reservaRepository.ExisteReservaNotificadaDeOutroUsuarioAsync(command.LivroId, command.UsuarioId, cancellationToken);
 
             if (livro.Disponivel && !guardadoParaOutroUsuario)
             {
                 return Result<int>.Falha($"Livro de id {command.LivroId} está disponível. Registre o empréstimo em vez de reservar");
             }
 
-            var reservaDuplicada = await _reservaRepository.VerificarReservaDuplicada(command.LivroId, command.UsuarioId, cancellationToken);
+            var reservaDuplicada = await _reservaRepository.ExisteReservaPendenteAsync(command.LivroId, command.UsuarioId, cancellationToken);
 
             if (reservaDuplicada)
             {
                 return Result<int>.Falha($"Usuário de id {command.UsuarioId} já possui uma reserva pendente para o livro de id {command.LivroId}");
             }
 
-            var usuarioEstaComLivro = await _emprestimoRepository.VerificarUsuarioComLivro(command.LivroId, command.UsuarioId, cancellationToken);
+            var usuarioEstaComLivro = await _emprestimoRepository.ExisteEmprestimoAbertoDoUsuarioAsync(command.LivroId, command.UsuarioId, cancellationToken);
 
             if (usuarioEstaComLivro)
             {
                 return Result<int>.Falha($"Usuário de id {command.UsuarioId} já está com o livro de id {command.LivroId} emprestado");
             }
 
-            var reserva = _reservaRepository.Reservar(command.LivroId, command.UsuarioId, cancellationToken);
+            var reserva = new Reserva(command.LivroId, command.UsuarioId, DateTime.Now);
+            _reservaRepository.Adicionar(reserva);
 
             try
             {
@@ -75,7 +77,7 @@ namespace GerenciadorLivro.Application.Commands.ReservarLivro
                 _reservaRepository.RemoverReserva(reserva);
 
                 var duplicadaAgora = await _reservaRepository
-                    .VerificarReservaDuplicada(command.LivroId, command.UsuarioId, cancellationToken);
+                    .ExisteReservaPendenteAsync(command.LivroId, command.UsuarioId, cancellationToken);
 
                 if (!duplicadaAgora)
                 {
