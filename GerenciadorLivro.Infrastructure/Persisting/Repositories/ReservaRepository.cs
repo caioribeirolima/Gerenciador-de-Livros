@@ -1,7 +1,6 @@
 ﻿using GerenciadorLivro.Core.Entities;
 using GerenciadorLivro.Core.Repositories;
 using Microsoft.EntityFrameworkCore;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace GerenciadorLivro.Infrastructure.Persisting.Repositories
 {
@@ -10,37 +9,35 @@ namespace GerenciadorLivro.Infrastructure.Persisting.Repositories
         private readonly AppDbContext _dbContext;
         public ReservaRepository(AppDbContext dbContext) => _dbContext = dbContext;
 
+        public async Task<Reserva?> BuscarPorIdAsync(int id, CancellationToken cancellationToken)
+            => await _dbContext.Reservas.FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
+
+        public async Task<Reserva?> BuscarReservaAtivaPorUsuarioELivro(int livroId, int usuarioId, CancellationToken cancellationToken)
+            => await _dbContext.Reservas
+                .FirstOrDefaultAsync(r => r.LivroId == livroId
+                    && r.UsuarioId == usuarioId
+                    && (r.Status == StatusReserva.Ativa || r.Status == StatusReserva.Notificada), cancellationToken);
+
         public void RemoverReserva(Reserva reserva)
-        {
-            _dbContext.Reservas.Remove(reserva);
-        }
+            => _dbContext.Reservas.Remove(reserva);
 
         public Reserva Reservar(int livroId, int usuarioId, CancellationToken cancellationToken)
         {
             var reserva = new Reserva(livroId, usuarioId, DateTime.Now);
-            _dbContext.Reservas.AddAsync(reserva, cancellationToken);
-
+            _dbContext.Reservas.Add(reserva);
             return reserva;
         }
 
         public async Task<bool> VerificarReservaDuplicada(int livroId, int usuarioId, CancellationToken cancellationToken)
-        {
-            var result = await _dbContext.Reservas
+            => await _dbContext.Reservas
                 .AnyAsync(r => r.LivroId == livroId
-                && r.UsuarioId == usuarioId
-                && (r.Status == StatusReserva.Ativa || r.Status == StatusReserva.Notificada), cancellationToken);
+                    && r.UsuarioId == usuarioId
+                    && (r.Status == StatusReserva.Ativa || r.Status == StatusReserva.Notificada), cancellationToken);
 
-            return result;
-        }
-
-        public async Task<bool> VerificarReservaOutroUsuario(int LivroId, int UsuarioId, CancellationToken cancellationToken)
-        {
-            var result = await _dbContext.Reservas
-                .AnyAsync(r => r.LivroId == LivroId
-                && r.Status == StatusReserva.Notificada
-                && r.UsuarioId != UsuarioId, cancellationToken);
-
-            return result;
-        }
+        public async Task<bool> VerificarReservaOutroUsuario(int livroId, int usuarioId, CancellationToken cancellationToken)
+            => await _dbContext.Reservas
+                .AnyAsync(r => r.LivroId == livroId
+                    && r.Status == StatusReserva.Notificada
+                    && r.UsuarioId != usuarioId, cancellationToken);
     }
 }

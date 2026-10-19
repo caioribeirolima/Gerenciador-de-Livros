@@ -2,7 +2,6 @@ using GerenciadorLivro.Application.Common;
 using GerenciadorLivro.Core.Entities;
 using GerenciadorLivro.Core.Repositories;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
 namespace GerenciadorLivro.Application.Commands.RegistrarEmprestimo
@@ -11,58 +10,50 @@ namespace GerenciadorLivro.Application.Commands.RegistrarEmprestimo
     {
         private readonly ILivroRepository _livroRepository;
         private readonly IEmprestimoRepository _emprestimoRepository;
+        private readonly IReservaRepository _reservaRepository;
+        private readonly IUsuarioRepository _usuarioRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly EmprestimoSettings _emprestimoSettings;
 
         public RegistrarEmprestimoHandler(
             ILivroRepository livroRepository,
             IEmprestimoRepository emprestimoRepository,
+            IReservaRepository reservaRepository,
+            IUsuarioRepository usuarioRepository,
             IUnitOfWork unitOfWork,
             IOptions<EmprestimoSettings> emprestimoSettings)
         {
             _livroRepository = livroRepository;
             _emprestimoRepository = emprestimoRepository;
+            _reservaRepository = reservaRepository;
+            _usuarioRepository = usuarioRepository;
             _unitOfWork = unitOfWork;
             _emprestimoSettings = emprestimoSettings.Value;
         }
 
         public async Task<Result<int>> Handle(RegistrarEmprestimoCommand command, CancellationToken cancellationToken)
         {
-            var livro = await _livroRepository.BuscarPorIdAsync(command.Id, cancellationToken);
+            var livro = await _livroRepository.BuscarPorIdAsync(command.LivroId, cancellationToken);
 
             if (livro == null)
-            {
                 return Result<int>.Falha($"Livro de id {command.LivroId} não encontrado");
-            }
 
             if (!livro.Disponivel)
-            {
                 return Result<int>.Falha($"Livro de id {command.LivroId} não está disponível");
-            }
 
-            var usuarioExiste = await _dbContext.Usuarios
-                .AnyAsync(u => u.Id == command.UsuarioId, cancellationToken);
+            var usuarioExiste = await _usuarioRepository.ExisteAsync(command.UsuarioId, cancellationToken);
 
             if (!usuarioExiste)
-            {
                 return Result<int>.Falha($"Usuário de id {command.UsuarioId} não encontrado");
-            }
 
-            var reservaNotificadaDeOutro = await _dbContext.Reservas
-                .AnyAsync(r => r.LivroId == command.LivroId
-                            && r.Status == StatusReserva.Notificada
-                            && r.UsuarioId != command.UsuarioId, cancellationToken);
+            var reservaNotificadaDeOutro = await _reservaRepository
+                .VerificarReservaOutroUsuario(command.LivroId, command.UsuarioId, cancellationToken);
 
             if (reservaNotificadaDeOutro)
-            {
                 return Result<int>.Falha($"Livro de id {command.LivroId} está reservado para outro usuário");
-            }
 
-            var reservaDoUsuario = await _dbContext.Reservas
-                .Where(r => r.LivroId == command.LivroId
-                         && r.UsuarioId == command.UsuarioId
-                         && (r.Status == StatusReserva.Notificada || r.Status == StatusReserva.Ativa))
-                .FirstOrDefaultAsync(cancellationToken);
+            var reservaDoUsuario = await _reservaRepository
+                .BuscarReservaAtivaPorUsuarioELivro(command.LivroId, command.UsuarioId, cancellationToken);
 
             if (reservaDoUsuario != null)
             {

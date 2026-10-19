@@ -1,6 +1,4 @@
 using GerenciadorLivro.Application.Common;
-using GerenciadorLivro.Application.Common.Interfaces;
-using GerenciadorLivro.Core.Entities;
 using GerenciadorLivro.Core.Repositories;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -12,18 +10,20 @@ namespace GerenciadorLivro.Application.Commands.ReservarLivro
         private readonly ILivroRepository _livroRepository;
         private readonly IEmprestimoRepository _emprestimoRepository;
         private readonly IReservaRepository _reservaRepository;
+        private readonly IUsuarioRepository _usuarioRepository;
         private readonly IUnitOfWork _unitOfWork;
 
         public ReservarLivroHandler(
             ILivroRepository livroRepository,
             IEmprestimoRepository emprestimoRepository,
             IReservaRepository reservaRepository,
-            IUnitOfWork unitOfWork
-            )
+            IUsuarioRepository usuarioRepository,
+            IUnitOfWork unitOfWork)
         {
             _livroRepository = livroRepository;
             _emprestimoRepository = emprestimoRepository;
             _reservaRepository = reservaRepository;
+            _usuarioRepository = usuarioRepository;
             _unitOfWork = unitOfWork;
         }
 
@@ -36,8 +36,7 @@ namespace GerenciadorLivro.Application.Commands.ReservarLivro
                 return Result<int>.Falha($"Livro de id {command.LivroId} não encontrado");
             }
 
-            var usuarioExiste = await _dbContext.Usuarios
-                .AnyAsync(u => u.Id == command.UsuarioId, cancellationToken);
+            var usuarioExiste = await _usuarioRepository.ExisteAsync(command.UsuarioId, cancellationToken);
 
             if (!usuarioExiste)
             {

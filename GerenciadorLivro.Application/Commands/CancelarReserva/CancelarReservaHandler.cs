@@ -1,44 +1,39 @@
 using GerenciadorLivro.Application.Common;
-using GerenciadorLivro.Application.Common.Interfaces;
 using GerenciadorLivro.Application.Notifications.Reservas;
 using GerenciadorLivro.Core.Entities;
+using GerenciadorLivro.Core.Repositories;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 
 namespace GerenciadorLivro.Application.Commands.CancelarReserva
 {
     public class CancelarReservaHandler : IRequestHandler<CancelarReservaCommand, Result>
     {
-        private readonly IAppDbContext _dbContext;
+        private readonly IReservaRepository _reservaRepository;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IPublisher _publisher;
 
-        public CancelarReservaHandler(IAppDbContext dbContext, IPublisher publisher)
+        public CancelarReservaHandler(IReservaRepository reservaRepository, IUnitOfWork unitOfWork, IPublisher publisher)
         {
-            _dbContext = dbContext;
+            _reservaRepository = reservaRepository;
+            _unitOfWork = unitOfWork;
             _publisher = publisher;
         }
 
         public async Task<Result> Handle(CancelarReservaCommand command, CancellationToken cancellationToken)
         {
-            var reserva = await _dbContext.Reservas
-                .Where(r => r.Id == command.ReservaId)
-                .FirstOrDefaultAsync(cancellationToken);
+            var reserva = await _reservaRepository.BuscarPorIdAsync(command.ReservaId, cancellationToken);
 
             if (reserva == null)
-            {
                 return Result.Falha($"Reserva de id {command.ReservaId} não encontrada");
-            }
 
             if (reserva.Status != StatusReserva.Ativa && reserva.Status != StatusReserva.Notificada)
-            {
                 return Result.Falha($"Reserva de id {command.ReservaId} não pode ser cancelada: status atual é {reserva.Status}");
-            }
 
             var statusAnterior = reserva.Status;
             reserva.Status = StatusReserva.Cancelada;
             reserva.DataEncerramento = DateTime.Now;
 
-            await _dbContext.SaveChangesAsync(cancellationToken);
+            await _unitOfWork.CommitAsync(cancellationToken);
 
             await _publisher.Publish(new ReservaCanceladaNotification(reserva.Id, reserva.LivroId, statusAnterior), cancellationToken);
 

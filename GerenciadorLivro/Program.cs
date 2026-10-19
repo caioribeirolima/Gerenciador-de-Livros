@@ -2,8 +2,10 @@ using GerenciadorLivro.Application.Commands.CriarLivro;
 using GerenciadorLivro.Application.Common.Behaviors;
 using GerenciadorLivro.Application.Common.Interfaces;
 using GerenciadorLivro.Core.Entities;
+using GerenciadorLivro.Core.Repositories;
 using GerenciadorLivro.Exceptions;
 using GerenciadorLivro.Infrastructure.Persisting;
+using GerenciadorLivro.Infrastructure.Persisting.Repositories;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -31,6 +33,11 @@ namespace GerenciadorLivro.API
             });
 
             builder.Services.AddScoped<IAppDbContext>(sp => sp.GetRequiredService<AppDbContext>());
+            builder.Services.AddScoped<ILivroRepository, LivroRepository>();
+            builder.Services.AddScoped<IEmprestimoRepository, EmprestimoRepository>();
+            builder.Services.AddScoped<IReservaRepository, ReservaRepository>();
+            builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
+            builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             builder.Services.Configure<EmprestimoSettings>(
                 builder.Configuration.GetSection("EmprestimoSettings"));
