@@ -1,7 +1,9 @@
 using GerenciadorLivro.Application.Commands.ReservarLivro;
 using GerenciadorLivro.Application.Common.Interfaces;
 using GerenciadorLivro.Core.Entities;
+using GerenciadorLivro.Core.Repositories;
 using GerenciadorLivro.Infrastructure.Persisting;
+using GerenciadorLivro.Infrastructure.Persisting.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -17,6 +19,11 @@ namespace GerenciadorLivro.Tests.Reservas
             services.AddLogging();
             services.AddDbContext<AppDbContext>(o => o.UseInMemoryDatabase(nomeBanco));
             services.AddScoped<IAppDbContext>(sp => sp.GetRequiredService<AppDbContext>());
+            services.AddScoped<ILivroRepository, LivroRepository>();
+            services.AddScoped<IEmprestimoRepository, EmprestimoRepository>();
+            services.AddScoped<IReservaRepository, ReservaRepository>();
+            services.AddScoped<IUsuarioRepository, UsuarioRepository>();
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.Configure<EmprestimoSettings>(s => s.DiasParaDevolucao = 7);
             services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(ReservarLivroCommand).Assembly));
 
