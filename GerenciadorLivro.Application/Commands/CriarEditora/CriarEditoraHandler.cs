@@ -1,15 +1,21 @@
 using GerenciadorLivro.Application.Common;
-using GerenciadorLivro.Application.Common.Interfaces;
 using GerenciadorLivro.Core.Entities;
+using GerenciadorLivro.Core.Repositories;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 
 namespace GerenciadorLivro.Application.Commands.CriarEditora
 {
     public class CriarEditoraHandler : IRequestHandler<CriarEditoraCommand, Result<int>>
     {
-        private readonly IAppDbContext _dbContext;
-        public CriarEditoraHandler(IAppDbContext dbContext) => _dbContext = dbContext;
+        private readonly IEditoraRepository _editoraRepository;
+        private readonly IUnitOfWork _unitOfWork;
+        public CriarEditoraHandler(
+            IEditoraRepository editoraRepository,
+            IUnitOfWork unitOfWork)
+        {
+            _editoraRepository = editoraRepository;
+            _unitOfWork = unitOfWork;
+        }
 
 
         public async Task<Result<int>> Handle(CriarEditoraCommand command, CancellationToken cancellationToken)
@@ -26,9 +32,8 @@ namespace GerenciadorLivro.Application.Commands.CriarEditora
                 return Result<int>.Falha("Nome não pode ter mais que 100 caracteres");
             }
 
-            var exists = await _dbContext.Editoras
-                .Where(e => e.Nome.ToUpper() == nome.ToUpper())
-                .AnyAsync(cancellationToken);
+            var exists = await _editoraRepository
+                .VerificarSeExiste(nome, cancellationToken);
 
             if (exists)
             {
@@ -40,8 +45,8 @@ namespace GerenciadorLivro.Application.Commands.CriarEditora
                 Nome = nome,
             };
 
-            _dbContext.Editoras.Add(editora);
-            await _dbContext.SaveChangesAsync(cancellationToken);
+            _editoraRepository.AdicionarAsync(editora, cancellationToken);
+            await _unitOfWork.CommitAsync(cancellationToken);
 
             return Result<int>.Ok(editora.Id);
         }
