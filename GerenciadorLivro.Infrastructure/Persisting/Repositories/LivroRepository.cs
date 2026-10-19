@@ -55,7 +55,7 @@ namespace GerenciadorLivro.Infrastructure.Persisting.Repositories
             return possui;
         }
 
-        public async Task<bool> ExisteLivroNaEditora(int id, CancellationToken cancellationToken)
+        public async Task<bool> ExisteLivroNaEditoraAsync(int id, CancellationToken cancellationToken)
         {
             var possui = await _dbContext.Livros
                 .IgnoreQueryFilters()

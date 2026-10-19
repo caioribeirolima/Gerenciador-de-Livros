@@ -28,7 +28,7 @@ namespace GerenciadorLivro.Application.Commands.ExcluirEditora
                 return Result.Falha("Editora não existe");
             }
 
-            var possuiLivros = await _livroRepository.ExisteLivroNaEditora(command.Id, cancellationToken);
+            var possuiLivros = await _livroRepository.ExisteLivroNaEditoraAsync(command.Id, cancellationToken);
 
             if (possuiLivros)
             {
