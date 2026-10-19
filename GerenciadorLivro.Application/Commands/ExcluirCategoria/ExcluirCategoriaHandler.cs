@@ -30,7 +30,7 @@ namespace GerenciadorLivro.Application.Commands.ExcluirCategoria
             }
 
             var possuiLivros = await _livroRepository
-                .VerificarLivroPorCategoria(command.Id, cancellationToken);
+                .ExisteLivroNaCategoriaAsync(command.Id, cancellationToken);
 
 
             if (possuiLivros)
@@ -38,7 +38,7 @@ namespace GerenciadorLivro.Application.Commands.ExcluirCategoria
                 return Result.Falha("Existem livros vinculados a esta categoria (incluindo livros excluídos)");
             }
 
-            _categoriaRepository.ExcluirAsync(categoria);
+            _categoriaRepository.Excluir(categoria);
 
             await _unitOfWork.CommitAsync(cancellationToken);
             return Result.Ok();

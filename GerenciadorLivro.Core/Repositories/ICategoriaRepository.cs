@@ -6,7 +6,7 @@ namespace GerenciadorLivro.Core.Repositories
     {
         Task<Categoria?> BuscarPorIdAsync(int id, CancellationToken cancellationToken);
         void Adicionar(Categoria categoria);
-        void ExcluirAsync(Categoria categoria);
+        void Excluir(Categoria categoria);
         Task<bool> ExisteComNomeAsync(string nome, CancellationToken cancellationToken);
     }
 }

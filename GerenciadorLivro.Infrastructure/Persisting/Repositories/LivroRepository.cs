@@ -1,7 +1,6 @@
-﻿using GerenciadorLivro.Core.Entities;
+using GerenciadorLivro.Core.Entities;
 using GerenciadorLivro.Core.Repositories;
 using Microsoft.EntityFrameworkCore;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace GerenciadorLivro.Infrastructure.Persisting.Repositories
 {
@@ -23,11 +22,11 @@ namespace GerenciadorLivro.Infrastructure.Persisting.Repositories
             return livro;
         }
 
-        public async Task<bool> VerificarLivroPorCategoria(int id, CancellationToken cancellationToken)
+        public async Task<bool> ExisteLivroNaCategoriaAsync(int categoriaId, CancellationToken cancellationToken)
         {
             var possui = await _dbContext.Livros
                 .IgnoreQueryFilters()
-                .AnyAsync(l => l.CategoriaId == id, cancellationToken);
+                .AnyAsync(l => l.CategoriaId == categoriaId, cancellationToken);
 
             return possui;
         }

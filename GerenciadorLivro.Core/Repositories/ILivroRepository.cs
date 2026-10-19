@@ -1,4 +1,4 @@
-﻿using GerenciadorLivro.Core.Entities;
+using GerenciadorLivro.Core.Entities;
 
 namespace GerenciadorLivro.Core.Repositories
 {
@@ -6,7 +6,6 @@ namespace GerenciadorLivro.Core.Repositories
     {
         Task<Livro?> BuscarPorIdAsync(int id, CancellationToken cancellationToken);
         Task<Livro?> BuscarPorIdIncluindoExcluidosAsync(int id, CancellationToken cancellationToken);
-        Task<bool> VerificarLivroPorCategoria(int id, CancellationToken cancellationToken);
-
+        Task<bool> ExisteLivroNaCategoriaAsync(int categoriaId, CancellationToken cancellationToken);
     }
 }

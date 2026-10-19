@@ -22,10 +22,7 @@ namespace GerenciadorLivro.Infrastructure.Persisting.Repositories
 
         public void Adicionar(Categoria categoria) => _dbContext.Categorias.Add(categoria);
 
-        public void ExcluirAsync(Categoria categoria)
-        {
-            _dbContext.Categorias.Remove(categoria);
-        }
+        public void Excluir(Categoria categoria) => _dbContext.Categorias.Remove(categoria);
 
         public async Task<bool> ExisteComNomeAsync(string nome, CancellationToken cancellationToken)
         {
