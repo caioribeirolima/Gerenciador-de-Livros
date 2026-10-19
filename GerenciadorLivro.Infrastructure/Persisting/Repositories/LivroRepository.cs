@@ -1,3 +1,5 @@
+using Azure.Core;
+using GerenciadorLivro.Application.DTOs.ViewModels;
 using GerenciadorLivro.Core.Entities;
 using GerenciadorLivro.Core.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -14,9 +16,23 @@ namespace GerenciadorLivro.Infrastructure.Persisting.Repositories
             _dbContext.Livros.AddAsync(livro);
         }
 
+        public void AdicionarAutorAoLivro(Livro livro, Autor autor)
+        {
+            livro.Autores.Add(autor);
+        }
+
         public async Task<Livro?> BuscarPorIdAsync(int id, CancellationToken cancellationToken)
             => await _dbContext.Livros.FirstOrDefaultAsync(l => l.Id == id, cancellationToken);
 
+        public async Task<Livro?> BuscarPorIdIncluindoAutoresAsync(int id, CancellationToken cancellationToken)
+        {
+            var livro = await _dbContext.Livros
+                .Where(l => l.Id == id)
+                .Include(l => l.Autores)
+                .FirstOrDefaultAsync(l => l.Id == id, cancellationToken);
+
+            return livro;
+        }
 
         public async Task<Livro?> BuscarPorIdIncluindoExcluidosAsync(int id, CancellationToken cancellationToken)
         {
@@ -25,6 +41,11 @@ namespace GerenciadorLivro.Infrastructure.Persisting.Repositories
                 .FirstOrDefaultAsync(l => l.Id == id, cancellationToken);
 
             return livro;
+        }
+
+        public void Excluir(Livro livro)
+        {
+            livro.Excluido = true;
         }
 
         public async Task<bool> ExisteLivroNaCategoriaAsync(int categoriaId, CancellationToken cancellationToken)

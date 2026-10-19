@@ -1,27 +1,35 @@
 using GerenciadorLivro.Application.Common;
-using GerenciadorLivro.Application.Common.Interfaces;
+using GerenciadorLivro.Core.Repositories;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 
 namespace GerenciadorLivro.Application.Commands.AdicionarAutorAoLivro
 {
     public class AdicionarAutorAoLivroHandler : IRequestHandler<AdicionarAutorAoLivroCommand, Result>
     {
-        private readonly IAppDbContext _dbContext;
+        private readonly IAutorRepository _autorRepository;
+        private readonly ILivroRepository _livroRepository;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public AdicionarAutorAoLivroHandler(IAppDbContext dbContext) => _dbContext = dbContext;
+        public AdicionarAutorAoLivroHandler(
+            IAutorRepository autorRepository,
+            ILivroRepository livroRepository,
+            IUnitOfWork unitOfWork)
+        {
+            _autorRepository = autorRepository;
+            _livroRepository = livroRepository;
+            _unitOfWork = unitOfWork;
+        }
 
         public async Task<Result> Handle(AdicionarAutorAoLivroCommand request, CancellationToken cancellationToken)
         {
-            var livro = await _dbContext.Livros
-                .Include(l => l.Autores)
-                .FirstOrDefaultAsync(l => l.Id == request.LivroId, cancellationToken);
+            var livro = await _livroRepository
+                .BuscarPorIdIncluindoAutoresAsync(request.LivroId, cancellationToken);
 
             if (livro is null)
                 return Result.Falha($"Livro de id {request.LivroId} não encontrado");
 
-            var autor = await _dbContext.Autores
-                .FirstOrDefaultAsync(a => a.Id == request.AutorId, cancellationToken);
+            var autor = await _autorRepository
+                .BuscarPorIdAsync(request.LivroId, cancellationToken);
 
             if (autor is null)
                 return Result.Falha($"Autor de id {request.AutorId} não encontrado");
@@ -29,8 +37,8 @@ namespace GerenciadorLivro.Application.Commands.AdicionarAutorAoLivro
             if (livro.Autores.Any(a => a.Id == autor.Id))
                 return Result.Falha($"O autor {request.AutorId} já está associado ao livro {request.LivroId}");
 
-            livro.Autores.Add(autor);
-            await _dbContext.SaveChangesAsync(cancellationToken);
+            _livroRepository.AdicionarAutorAoLivro(livro, autor);
+            await _unitOfWork.CommitAsync(cancellationToken);
 
             return Result.Ok();
         }
