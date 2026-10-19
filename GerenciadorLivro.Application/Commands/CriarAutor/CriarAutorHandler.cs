@@ -32,7 +32,7 @@ namespace GerenciadorLivro.Application.Commands.CriarAutor
             }
 
             var exists = await _autorRepository
-                .BuscarPorNomeAsync(nome, cancellationToken);
+                .ExisteComNomeAsync(nome, cancellationToken);
 
             if (exists)
             {
@@ -44,7 +44,7 @@ namespace GerenciadorLivro.Application.Commands.CriarAutor
                 Nome = nome,
             };
 
-            _autorRepository.CriarAutor(autor);
+            _autorRepository.Adicionar(autor);
             await _unitOfWork.CommitAsync(cancellationToken);
 
             return Result<int>.Ok(autor.Id);
