@@ -6,6 +6,7 @@ namespace GerenciadorLivro.Core.Repositories
     {
         Task<List<Autor>> ListarPorIdAsync(List<int> autoresId, CancellationToken cancellationToken);
         Task<Autor?> BuscarPorIdAsync(int id, CancellationToken cancellationToken);
-        void AdicionarAutor(Autor autor);
+        void CriarAutor(Autor autor);
+        Task<bool> BuscarPorNomeAsync(string nome, CancellationToken cancellationToken);
     }
 }

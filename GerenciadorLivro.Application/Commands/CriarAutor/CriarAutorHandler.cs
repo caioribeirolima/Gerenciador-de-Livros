@@ -1,15 +1,21 @@
 using GerenciadorLivro.Application.Common;
-using GerenciadorLivro.Application.Common.Interfaces;
 using GerenciadorLivro.Core.Entities;
+using GerenciadorLivro.Core.Repositories;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 
 namespace GerenciadorLivro.Application.Commands.CriarAutor
 {
     public class CriarAutorHandler : IRequestHandler<CriarAutorCommand, Result<int>>
     {
-        private readonly IAppDbContext _dbContext;
-        public CriarAutorHandler(IAppDbContext dbContext) => _dbContext = dbContext;
+        private readonly IAutorRepository _autorRepository;
+        private readonly IUnitOfWork _unitOfWork;
+        public CriarAutorHandler(
+            IAutorRepository autorRepository,
+            IUnitOfWork unitOfWork)
+        {
+            _autorRepository = autorRepository;
+            _unitOfWork = unitOfWork;
+        }
 
         public async Task<Result<int>> Handle(CriarAutorCommand command, CancellationToken cancellationToken)
         {
@@ -25,9 +31,8 @@ namespace GerenciadorLivro.Application.Commands.CriarAutor
                 return Result<int>.Falha("Nome não pode ter mais que 150 caracteres");
             }
 
-            var exists = await _dbContext.Autores
-                .Where(a => a.Nome.ToUpper() == nome.ToUpper())
-                .AnyAsync(cancellationToken);
+            var exists = await _autorRepository
+                .BuscarPorNomeAsync(nome, cancellationToken);
 
             if (exists)
             {
@@ -39,8 +44,8 @@ namespace GerenciadorLivro.Application.Commands.CriarAutor
                 Nome = nome,
             };
 
-            _dbContext.Autores.Add(autor);
-            await _dbContext.SaveChangesAsync(cancellationToken);
+            _autorRepository.CriarAutor(autor);
+            await _unitOfWork.CommitAsync(cancellationToken);
 
             return Result<int>.Ok(autor.Id);
         }

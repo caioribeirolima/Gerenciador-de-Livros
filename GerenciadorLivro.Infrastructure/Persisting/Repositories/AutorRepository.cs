@@ -14,7 +14,7 @@ namespace GerenciadorLivro.Infrastructure.Persisting.Repositories
             _dbContext = dbContext;
         }
 
-        public void AdicionarAutor(Autor autor)
+        public void CriarAutor(Autor autor)
         {
             _dbContext.Autores.AddAsync(autor);
         }
@@ -34,6 +34,15 @@ namespace GerenciadorLivro.Infrastructure.Persisting.Repositories
                 .ToListAsync(cancellationToken);
 
             return autores;
+        }
+
+        public async Task<bool> BuscarPorNomeAsync(string nome, CancellationToken cancellationToken)
+        {
+            var exists = await _dbContext.Autores
+                .Where(a => a.Nome.ToUpper() == nome.ToUpper())
+                .AnyAsync(cancellationToken);
+
+            return exists;
         }
     }
 }
