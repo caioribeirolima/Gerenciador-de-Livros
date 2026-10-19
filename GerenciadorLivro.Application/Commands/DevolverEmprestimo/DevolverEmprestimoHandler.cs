@@ -39,7 +39,7 @@ namespace GerenciadorLivro.Application.Commands.DevolverEmprestimo
                 return Result.Falha($"Empréstimo de id {command.EmprestimoId} já foi devolvido");
             }
 
-            var livro = await _livroRepository.BuscarPorIdAsync(emprestimo.LivroId, cancellationToken);
+            var livro = await _livroRepository.BuscarPorIdExcluidosAsync(emprestimo.LivroId, cancellationToken);
 
             if (livro == null)
             {

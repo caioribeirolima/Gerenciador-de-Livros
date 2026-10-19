@@ -1,6 +1,7 @@
 using GerenciadorLivro.Application.Common;
 using GerenciadorLivro.Application.Common.Interfaces;
 using GerenciadorLivro.Core.Entities;
+using GerenciadorLivro.Core.Repositories;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,16 +9,27 @@ namespace GerenciadorLivro.Application.Commands.ReservarLivro
 {
     public class ReservarLivroHandler : IRequestHandler<ReservarLivroCommand, Result<int>>
     {
-        private readonly IAppDbContext _dbContext;
-        public ReservarLivroHandler(IAppDbContext dbContext) => _dbContext = dbContext;
+        private readonly ILivroRepository _livroRepository;
+        private readonly IEmprestimoRepository _emprestimoRepository;
+        private readonly IReservaRepository _reservaRepository;
+        private readonly IUnitOfWork _unitOfWork;
+
+        public ReservarLivroHandler(
+            ILivroRepository livroRepository,
+            IEmprestimoRepository emprestimoRepository,
+            IReservaRepository reservaRepository,
+            IUnitOfWork unitOfWork
+            )
+        {
+            _livroRepository = livroRepository;
+            _emprestimoRepository = emprestimoRepository;
+            _reservaRepository = reservaRepository;
+            _unitOfWork = unitOfWork;
+        }
 
         public async Task<Result<int>> Handle(ReservarLivroCommand command, CancellationToken cancellationToken)
         {
-            var livro = await _dbContext.Livros
-                .AsNoTracking()
-                .Where(l => l.Id == command.LivroId)
-                .Select(l => new { l.Id, l.Disponivel })
-                .FirstOrDefaultAsync(cancellationToken);
+            var livro = await _livroRepository.BuscarPorIdAsync(command.LivroId, cancellationToken);
 
             if (livro == null)
             {
@@ -32,57 +44,39 @@ namespace GerenciadorLivro.Application.Commands.ReservarLivro
                 return Result<int>.Falha($"Usuário de id {command.UsuarioId} não encontrado");
             }
 
-            // Um livro devolvido fica Disponivel = true, mas guardado para quem foi Notificado.
-            // Para os demais usuários ele continua indisponível, então eles podem entrar na fila.
-            var guardadoParaOutroUsuario = await _dbContext.Reservas
-                .AnyAsync(r => r.LivroId == command.LivroId
-                            && r.Status == StatusReserva.Notificada
-                            && r.UsuarioId != command.UsuarioId, cancellationToken);
+            var guardadoParaOutroUsuario = await _reservaRepository.VerificarReservaOutroUsuario(command.LivroId, command.UsuarioId, cancellationToken);
 
             if (livro.Disponivel && !guardadoParaOutroUsuario)
             {
                 return Result<int>.Falha($"Livro de id {command.LivroId} está disponível. Registre o empréstimo em vez de reservar");
             }
 
-            var reservaDuplicada = await _dbContext.Reservas
-                .AnyAsync(r => r.LivroId == command.LivroId
-                            && r.UsuarioId == command.UsuarioId
-                            && (r.Status == StatusReserva.Ativa || r.Status == StatusReserva.Notificada), cancellationToken);
+            var reservaDuplicada = await _reservaRepository.VerificarReservaDuplicada(command.LivroId, command.UsuarioId, cancellationToken);
 
             if (reservaDuplicada)
             {
                 return Result<int>.Falha($"Usuário de id {command.UsuarioId} já possui uma reserva pendente para o livro de id {command.LivroId}");
             }
 
-            var usuarioEstaComLivro = await _dbContext.Emprestimos
-                .AnyAsync(e => e.LivroId == command.LivroId
-                            && e.UsuarioId == command.UsuarioId
-                            && e.DataDevolucaoReal == null, cancellationToken);
+            var usuarioEstaComLivro = await _emprestimoRepository.VerificarUsuarioComLivro(command.LivroId, command.UsuarioId, cancellationToken);
 
             if (usuarioEstaComLivro)
             {
                 return Result<int>.Falha($"Usuário de id {command.UsuarioId} já está com o livro de id {command.LivroId} emprestado");
             }
 
-            var reserva = new Reserva(command.LivroId, command.UsuarioId, DateTime.Now);
-            _dbContext.Reservas.Add(reserva);
+            var reserva = _reservaRepository.Reservar(command.LivroId, command.UsuarioId, cancellationToken);
 
             try
             {
-                await _dbContext.SaveChangesAsync(cancellationToken);
+                await _unitOfWork.CommitAsync(cancellationToken);
             }
             catch (DbUpdateException)
             {
-                // Duas requisições iguais ao mesmo tempo passam pela checagem acima e o índice único
-                // filtrado barra a segunda. Mas DbUpdateException também é conexão caída, FK, timeout...
-                // Só tratamos como "duplicada" se a reserva pendente realmente existe; o resto sobe.
-                _dbContext.Reservas.Remove(reserva); // solta a reserva que falhou do rastreamento
+                _reservaRepository.RemoverReserva(reserva);
 
-                var duplicadaAgora = await _dbContext.Reservas
-                    .AsNoTracking()
-                    .AnyAsync(r => r.LivroId == command.LivroId
-                                && r.UsuarioId == command.UsuarioId
-                                && (r.Status == StatusReserva.Ativa || r.Status == StatusReserva.Notificada), cancellationToken);
+                var duplicadaAgora = await _reservaRepository
+                    .VerificarReservaDuplicada(command.LivroId, command.UsuarioId, cancellationToken);
 
                 if (!duplicadaAgora)
                 {

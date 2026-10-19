@@ -1,5 +1,4 @@
 using GerenciadorLivro.Application.Common;
-using GerenciadorLivro.Application.Common.Interfaces;
 using GerenciadorLivro.Core.Entities;
 using GerenciadorLivro.Core.Repositories;
 using MediatR;
@@ -13,20 +12,17 @@ namespace GerenciadorLivro.Application.Commands.RegistrarEmprestimo
         private readonly ILivroRepository _livroRepository;
         private readonly IEmprestimoRepository _emprestimoRepository;
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IAppDbContext _dbContext;
         private readonly EmprestimoSettings _emprestimoSettings;
 
         public RegistrarEmprestimoHandler(
             ILivroRepository livroRepository,
             IEmprestimoRepository emprestimoRepository,
             IUnitOfWork unitOfWork,
-            IAppDbContext dbContext, 
             IOptions<EmprestimoSettings> emprestimoSettings)
         {
             _livroRepository = livroRepository;
             _emprestimoRepository = emprestimoRepository;
             _unitOfWork = unitOfWork;
-            _dbContext = dbContext;
             _emprestimoSettings = emprestimoSettings.Value;
         }
 

@@ -1,6 +1,7 @@
 ﻿using GerenciadorLivro.Core.Entities;
 using GerenciadorLivro.Core.Repositories;
 using Microsoft.EntityFrameworkCore;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace GerenciadorLivro.Infrastructure.Persisting.Repositories
 {
@@ -12,6 +13,17 @@ namespace GerenciadorLivro.Infrastructure.Persisting.Repositories
         public void Adicionar(Emprestimo emprestimo) => _dbContext.Emprestimos.Add(emprestimo);
 
         public async Task<Emprestimo?> BuscarPorIdAsync(int id, CancellationToken cancellationToken)
-            => await _dbContext.Emprestimos.FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
+            => await _dbContext.Emprestimos
+            .FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
+
+        public async Task<bool> VerificarUsuarioComLivro(int livroId, int usuarioId, CancellationToken cancellationToken)
+        {
+            var usuarioEstaComLivro = await _dbContext.Emprestimos
+                .AnyAsync(e => e.LivroId == livroId
+                && e.UsuarioId == usuarioId
+                && e.DataDevolucaoReal == null, cancellationToken);
+
+            return usuarioEstaComLivro;
+        }
     }
 }
