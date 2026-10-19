@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using GerenciadorLivro.Core.Entities;
 
 namespace GerenciadorLivro.Application.DTOs.ViewModels
 {
@@ -13,5 +9,6 @@ namespace GerenciadorLivro.Application.DTOs.ViewModels
         public string Titulo { get; set; } = string.Empty;
         public int AnoPublicacao { get; set; }
         public bool Disponivel { get; set; } = true;
+        public List<AutorResponse> Autores { get; set; } = new();
     }
 }
