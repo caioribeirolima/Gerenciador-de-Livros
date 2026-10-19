@@ -1,9 +1,6 @@
-using Azure.Core;
-using GerenciadorLivro.Application.DTOs.ViewModels;
 using GerenciadorLivro.Core.Entities;
 using GerenciadorLivro.Core.Repositories;
 using Microsoft.EntityFrameworkCore;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace GerenciadorLivro.Infrastructure.Persisting.Repositories
 {
