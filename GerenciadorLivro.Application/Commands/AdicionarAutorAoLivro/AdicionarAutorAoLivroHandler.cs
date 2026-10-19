@@ -29,7 +29,7 @@ namespace GerenciadorLivro.Application.Commands.AdicionarAutorAoLivro
                 return Result.Falha($"Livro de id {request.LivroId} não encontrado");
 
             var autor = await _autorRepository
-                .BuscarPorIdAsync(request.LivroId, cancellationToken);
+                .BuscarPorIdAsync(request.AutorId, cancellationToken);
 
             if (autor is null)
                 return Result.Falha($"Autor de id {request.AutorId} não encontrado");
