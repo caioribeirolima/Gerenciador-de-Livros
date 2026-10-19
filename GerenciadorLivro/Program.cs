@@ -37,6 +37,7 @@ namespace GerenciadorLivro.API
             builder.Services.AddScoped<IEmprestimoRepository, EmprestimoRepository>();
             builder.Services.AddScoped<IReservaRepository, ReservaRepository>();
             builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
+            builder.Services.AddScoped<ICategoriaRepository, CategoriaRepository>();
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             builder.Services.Configure<EmprestimoSettings>(

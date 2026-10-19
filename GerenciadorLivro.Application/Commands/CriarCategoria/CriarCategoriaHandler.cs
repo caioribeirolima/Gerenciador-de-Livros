@@ -1,16 +1,22 @@
 ﻿using GerenciadorLivro.Application.Common;
-using GerenciadorLivro.Application.Common.Interfaces;
 using GerenciadorLivro.Core.Entities;
+using GerenciadorLivro.Core.Repositories;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 
 namespace GerenciadorLivro.Application.Commands.CriarCategoria
 {
     public class CriarCategoriaHandler : IRequestHandler<CriarCategoriaCommand, Result<int>>
     {
-        private readonly IAppDbContext _dbContext;
+        private readonly ICategoriaRepository _categoriaRepository;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public CriarCategoriaHandler(IAppDbContext dbContext) => _dbContext = dbContext;
+        public CriarCategoriaHandler(
+            ICategoriaRepository categoriaRepository,
+            IUnitOfWork unitOfWork) 
+        {
+            _categoriaRepository = categoriaRepository;
+            _unitOfWork = unitOfWork;
+        }
 
         public async Task<Result<int>> Handle(CriarCategoriaCommand command, CancellationToken cancellationToken)
         {
@@ -22,10 +28,11 @@ namespace GerenciadorLivro.Application.Commands.CriarCategoria
                 return Result<int>.Falha("Nome da categoria inválido");
             }
 
-            var exists = await _dbContext.Categorias
-                .AnyAsync(c => c.Nome.ToUpper() == stringLimpa.ToUpper(), cancellationToken);
+            var existsCategoria = await _categoriaRepository
+                .VerificarDuplicidadePorNome(stringLimpa, cancellationToken);
 
-            if (exists)
+
+            if (existsCategoria)
             {
                 return Result<int>.Falha("Uma categoria já está cadastrada com este nome");
             }
@@ -35,9 +42,9 @@ namespace GerenciadorLivro.Application.Commands.CriarCategoria
                 Nome = stringLimpa,
             };
 
-            _dbContext.Categorias.Add(categoria);
-
-            await _dbContext.SaveChangesAsync(cancellationToken);
+            _categoriaRepository.CriarAsync(categoria, cancellationToken);
+            
+            await _unitOfWork.CommitAsync(cancellationToken);
             return Result<int>.Ok(categoria.Id);
 
 
