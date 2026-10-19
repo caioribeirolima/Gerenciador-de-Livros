@@ -29,7 +29,7 @@ namespace GerenciadorLivro.Application.Commands.CriarCategoria
             }
 
             var existsCategoria = await _categoriaRepository
-                .VerificarDuplicidadePorNome(stringLimpa, cancellationToken);
+                .ExisteComNomeAsync(stringLimpa, cancellationToken);
 
 
             if (existsCategoria)

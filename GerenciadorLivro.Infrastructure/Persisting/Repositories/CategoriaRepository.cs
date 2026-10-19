@@ -22,17 +22,12 @@ namespace GerenciadorLivro.Infrastructure.Persisting.Repositories
 
         public void Adicionar(Categoria categoria) => _dbContext.Categorias.Add(categoria);
 
-        public void EditarAsync(Categoria categoria, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
-
         public void ExcluirAsync(Categoria categoria)
         {
             _dbContext.Categorias.Remove(categoria);
         }
 
-        public async Task<bool> VerificarDuplicidadePorNome(string nome, CancellationToken cancellationToken)
+        public async Task<bool> ExisteComNomeAsync(string nome, CancellationToken cancellationToken)
         {
             var exists = await _dbContext.Categorias
                 .AnyAsync(c => c.Nome.ToUpper() == nome.ToUpper(), cancellationToken);

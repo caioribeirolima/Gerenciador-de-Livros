@@ -32,7 +32,7 @@ namespace GerenciadorLivro.Application.Commands.EditarCategoria
             if (!string.Equals(categoria.Nome, nomeLimpo, StringComparison.OrdinalIgnoreCase))
             {
                 var existsCategoria = await _categoriaRepository
-                    .VerificarDuplicidadePorNome(nomeLimpo, cancellationToken);
+                    .ExisteComNomeAsync(nomeLimpo, cancellationToken);
 
                 if (existsCategoria)
                     return Result.Falha($"Categoria com nome {nomeLimpo} já existe");
