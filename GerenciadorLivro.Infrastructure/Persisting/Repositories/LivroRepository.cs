@@ -3,6 +3,7 @@ using GerenciadorLivro.Application.DTOs.ViewModels;
 using GerenciadorLivro.Core.Entities;
 using GerenciadorLivro.Core.Repositories;
 using Microsoft.EntityFrameworkCore;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace GerenciadorLivro.Infrastructure.Persisting.Repositories
 {
@@ -53,6 +54,15 @@ namespace GerenciadorLivro.Infrastructure.Persisting.Repositories
             var possui = await _dbContext.Livros
                 .IgnoreQueryFilters()
                 .AnyAsync(l => l.CategoriaId == categoriaId, cancellationToken);
+
+            return possui;
+        }
+
+        public async Task<bool> ExisteLivroNaEditora(int id, CancellationToken cancellationToken)
+        {
+            var possui = await _dbContext.Livros
+                .IgnoreQueryFilters()
+                .AnyAsync(l => l.EditoraId == id, cancellationToken);
 
             return possui;
         }
