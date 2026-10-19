@@ -14,7 +14,7 @@ namespace GerenciadorLivro.Infrastructure.Persisting.Repositories
 
         public void AdicionarAsync(Editora editora, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            _dbContext.Editoras.AddAsync(editora, cancellationToken);
         }
 
         public async Task<Editora?> BuscarPorIdAsync(int id, CancellationToken cancellationToken)
