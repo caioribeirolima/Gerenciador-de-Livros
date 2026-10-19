@@ -1,28 +1,32 @@
 using GerenciadorLivro.Application.Common;
-using GerenciadorLivro.Application.Common.Interfaces;
+using GerenciadorLivro.Core.Repositories;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 
 namespace GerenciadorLivro.Application.Commands.ExcluirLivro
 {
     public class ExcluirLivroHandler : IRequestHandler<ExcluirLivroCommand, Result>
     {
-        private readonly IAppDbContext _dbContext;
+        private readonly ILivroRepository _livroRepository;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public ExcluirLivroHandler(IAppDbContext dbContext) => _dbContext = dbContext;
+        public ExcluirLivroHandler(
+            ILivroRepository livroRepository,
+            IUnitOfWork unitOfWork)
+        {
+            _livroRepository = livroRepository;
+            _unitOfWork = unitOfWork;
+        }
 
         public async Task<Result> Handle(ExcluirLivroCommand request, CancellationToken cancellationToken)
         {
-            var livro = await _dbContext.Livros
-                .Where(l => l.Id == request.Id)
-                .FirstOrDefaultAsync(cancellationToken);
+            var livro = await _livroRepository.BuscarPorIdAsync(request.Id, cancellationToken);
 
             if (livro is null)
                 return Result.Falha($"Livro de id {request.Id} não encontrado");
 
-            livro.Excluido = true;
+            _livroRepository.Excluir(livro);
 
-            await _dbContext.SaveChangesAsync(cancellationToken);
+            await _unitOfWork.CommitAsync(cancellationToken);
             return Result.Ok();
         }
     }
