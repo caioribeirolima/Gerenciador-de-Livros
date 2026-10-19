@@ -1,21 +1,25 @@
 using GerenciadorLivro.Application.Common;
-using GerenciadorLivro.Application.Common.Interfaces;
+using GerenciadorLivro.Core.Repositories;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 
 namespace GerenciadorLivro.Application.Commands.EditarLivro
 {
     public class EditarLivroHandler : IRequestHandler<EditarLivroCommand, Result>
     {
-        private readonly IAppDbContext _dbContext;
+        private readonly ILivroRepository _livroRepository;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public EditarLivroHandler(IAppDbContext dbContext) => _dbContext = dbContext;
+        public EditarLivroHandler(
+            ILivroRepository livroRepository,
+            IUnitOfWork unitOfWork)
+        {
+            _livroRepository = livroRepository;
+            _unitOfWork = unitOfWork;
+        }
 
         public async Task<Result> Handle(EditarLivroCommand request, CancellationToken cancellationToken)
         {
-            var livro = await _dbContext.Livros
-                .Where(l => l.Id == request.Id)
-                .FirstOrDefaultAsync(cancellationToken);
+            var livro = await _livroRepository.BuscarPorIdIncluindoExcluidosAsync(request.Id, cancellationToken);
 
             if (livro is null)
                 return Result.Falha($"Livro de id {request.Id} não encontrado");
@@ -25,7 +29,7 @@ namespace GerenciadorLivro.Application.Commands.EditarLivro
             livro.CategoriaId = request.CategoriaId;
             livro.EditoraId = request.EditoraId;
 
-            await _dbContext.SaveChangesAsync(cancellationToken);
+            await _unitOfWork.CommitAsync(cancellationToken);
             return Result.Ok();
         }
     }
