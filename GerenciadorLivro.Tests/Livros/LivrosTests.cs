@@ -473,6 +473,31 @@ namespace GerenciadorLivro.Tests.Livros
             Assert.True(result.ErrosValidacao!.ContainsKey(nameof(ListarAutoresQuery.Pagina)));
         }
 
+        [Theory]
+        [InlineData(1)]
+        [InlineData(100)]
+        public async Task ListarAutores_TamanhoPaginaNosLimites_Sucesso(int tamanhoPagina)
+        {
+            using var sp = Criar();
+
+            var result = await EnviarAsync(sp, new ListarAutoresQuery { TamanhoPagina = tamanhoPagina });
+
+            Assert.True(result.Sucesso);
+        }
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(101)]
+        public async Task ListarAutores_TamanhoPaginaForaDosLimites_RetornaValidacao(int tamanhoPagina)
+        {
+            using var sp = Criar();
+
+            var result = await EnviarAsync(sp, new ListarAutoresQuery { TamanhoPagina = tamanhoPagina });
+
+            Assert.Equal(TipoErro.Validacao, result.Tipo);
+            Assert.True(result.ErrosValidacao!.ContainsKey(nameof(ListarAutoresQuery.TamanhoPagina)));
+        }
+
         // ---------- ExcluirEditora ----------
 
         [Fact]

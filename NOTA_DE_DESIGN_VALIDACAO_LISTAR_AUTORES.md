@@ -54,7 +54,7 @@ Antes, `GET /api/Autores` nunca devolvia 400: valores fora da faixa eram corrigi
 | Parâmetro | Antes | Agora |
 |---|---|---|
 | `pagina = 0` | tratado como página 1 | 400 |
-| `tamanhoPagina = 1` | 1 item | **400** (`ExclusiveBetween(1, 50)` exclui o 1) |
-| `tamanhoPagina = 50` a `100` | até 100 itens | **400** |
+| `tamanhoPagina` de 1 a 100 | 1 a 100 itens | igual (`InclusiveBetween(1, 100)`) |
+| `tamanhoPagina = 0` ou `> 100` | corrigido para 1 ou 100 | 400 |
 
-A mensagem do validator diz "maior que 0 e menor que 100", mas a regra aceita só de 2 a 49. Isso parece um erro no validator, e o comportamento de `tamanhoPagina` precisa ser decidido antes de ir para produção.
+A primeira versão do validator usava `ExclusiveBetween(1, 50)`, que aceitava só de 2 a 49 e contradizia a própria mensagem. A faixa foi corrigida para 1 a 100, a mesma do `Math.Clamp` do handler, então nenhum valor que antes funcionava passa a dar 400.
