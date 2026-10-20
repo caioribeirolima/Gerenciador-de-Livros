@@ -6,8 +6,10 @@ namespace GerenciadorLivro.Application.Queries.ListarAutores
     {
         public ListarAutoresQueryValidator()
         {
+            // Mesmo limite do cadastro (CriarAutor = 150): com menos, não dá para buscar pelo nome completo
+            // de um autor cujo nome tem entre 101 e 150 caracteres.
             RuleFor(x => x.Nome)
-                .MaximumLength(100).WithMessage("O nome do autor não pode exceder 100 caracteres.");
+                .MaximumLength(150).WithMessage("O nome do autor não pode exceder 150 caracteres.");
 
             RuleFor(x => x.Pagina)
                 .GreaterThanOrEqualTo(1).WithMessage("O número da página deve ser maior ou igual a 1.");
