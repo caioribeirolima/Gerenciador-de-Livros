@@ -14,18 +14,12 @@ namespace GerenciadorLivro.Infrastructure.Persisting.Repositories
             _dbContext.Livros.Add(livro);
         }
 
-        public void AdicionarAutorAoLivro(Livro livro, Autor autor)
-        {
-            livro.Autores.Add(autor);
-        }
-
         public async Task<Livro?> BuscarPorIdAsync(int id, CancellationToken cancellationToken)
             => await _dbContext.Livros.FirstOrDefaultAsync(l => l.Id == id, cancellationToken);
 
         public async Task<Livro?> BuscarPorIdIncluindoAutoresAsync(int id, CancellationToken cancellationToken)
         {
             var livro = await _dbContext.Livros
-                .Where(l => l.Id == id)
                 .Include(l => l.Autores)
                 .FirstOrDefaultAsync(l => l.Id == id, cancellationToken);
 

@@ -5,7 +5,6 @@ namespace GerenciadorLivro.Core.Repositories
     public interface ILivroRepository
     {
         void Adicionar(Livro livro);
-        void AdicionarAutorAoLivro(Livro livro, Autor autor);
         Task<Livro?> BuscarPorIdAsync(int id, CancellationToken cancellationToken);
         Task<Livro?> BuscarPorIdIncluindoExcluidosAsync(int id, CancellationToken cancellationToken);
         Task<Livro?> BuscarPorIdIncluindoAutoresAsync(int id, CancellationToken cancellationToken);

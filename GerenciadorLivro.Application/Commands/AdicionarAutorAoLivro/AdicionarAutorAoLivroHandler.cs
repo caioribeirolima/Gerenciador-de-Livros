@@ -37,7 +37,7 @@ namespace GerenciadorLivro.Application.Commands.AdicionarAutorAoLivro
             if (livro.Autores.Any(a => a.Id == autor.Id))
                 return Result.Falha($"O autor {request.AutorId} já está associado ao livro {request.LivroId}");
 
-            _livroRepository.AdicionarAutorAoLivro(livro, autor);
+            livro.Autores.Add(autor);
             await _unitOfWork.CommitAsync(cancellationToken);
 
             return Result.Ok();
