@@ -159,6 +159,26 @@ namespace GerenciadorLivro.Tests.Livros
             Assert.Equal("Livro 1", livro.Titulo);
         }
 
+        [Fact]
+        public async Task EditarLivro_TituloVazio_LancaValidationExceptionSemAlterarRegistro()
+        {
+            using var sp = Criar();
+            await sp.SemearAsync(db => db.Livros.Add(Livro(1, true)));
+
+            var ex = await Assert.ThrowsAsync<ValidationException>(() => EnviarAsync(sp, new EditarLivroCommand
+            {
+                Id = 1,
+                Titulo = "",
+                AnoPublicacao = 2021,
+                CategoriaId = 2,
+                EditoraId = 3
+            }));
+
+            Assert.Contains(ex.Errors, e => e.PropertyName == nameof(EditarLivroCommand.Titulo));
+            var livro = await sp.LerAsync(db => db.Livros.SingleAsync(l => l.Id == 1));
+            Assert.Equal("Livro 1", livro.Titulo);
+        }
+
         // ---------- ExcluirLivro ----------
 
         [Fact]
@@ -244,6 +264,29 @@ namespace GerenciadorLivro.Tests.Livros
             Assert.Contains("já registrado", result.Erro);
             var total = await sp.LerAsync(db => db.Autores.CountAsync());
             Assert.Equal(1, total);
+        }
+
+        [Fact]
+        public async Task CriarAutor_NomeMaiorQueOLimite_LancaValidationExceptionSemGravar()
+        {
+            using var sp = Criar();
+
+            var ex = await Assert.ThrowsAsync<ValidationException>(() =>
+                EnviarAsync(sp, new CriarAutorCommand { Nome = new string('a', 151) }));
+
+            Assert.Contains(ex.Errors, e => e.PropertyName == nameof(CriarAutorCommand.Nome));
+            var total = await sp.LerAsync(db => db.Autores.CountAsync());
+            Assert.Equal(0, total);
+        }
+
+        [Fact]
+        public async Task CriarAutor_NomeNoLimite_Sucesso()
+        {
+            using var sp = Criar();
+
+            var result = await EnviarAsync(sp, new CriarAutorCommand { Nome = new string('a', 150) });
+
+            Assert.True(result.Sucesso);
         }
 
         // ---------- ExcluirEditora ----------
