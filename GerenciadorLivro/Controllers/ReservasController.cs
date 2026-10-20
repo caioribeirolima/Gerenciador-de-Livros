@@ -32,7 +32,7 @@ namespace GerenciadorLivro.API.Controllers
             }, cancellationToken);
 
             if (!result.Sucesso)
-                return this.ErroDe(result.Tipo, result.Erro, "Erro ao reservar livro");
+                return this.ErroDe(result.Tipo, result.Erro, "Erro ao reservar livro", result.ErrosValidacao);
 
             return CreatedAtRoute("ObterReservaPorId", new { id = result.Valor }, new { id = result.Valor });
         }
@@ -68,7 +68,7 @@ namespace GerenciadorLivro.API.Controllers
             var result = await _mediator.Send(new CancelarReservaCommand { ReservaId = id }, cancellationToken);
 
             if (!result.Sucesso)
-                return this.ErroDe(result.Tipo, result.Erro, "Erro ao cancelar reserva");
+                return this.ErroDe(result.Tipo, result.Erro, "Erro ao cancelar reserva", result.ErrosValidacao);
 
             return NoContent();
         }

@@ -150,7 +150,7 @@ namespace GerenciadorLivro.Controllers
             });
 
             if (!result.Sucesso)
-                return this.ErroDe(result.Tipo, result.Erro, "Erro ao adicionar autor");
+                return this.ErroDe(result.Tipo, result.Erro, "Erro ao adicionar autor", result.ErrosValidacao);
 
             return NoContent();
         }

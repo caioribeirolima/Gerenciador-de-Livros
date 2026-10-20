@@ -71,7 +71,7 @@ namespace GerenciadorLivro.API.Controllers
             });
 
             if (!result.Sucesso)
-                return this.ErroDe(result.Tipo, result.Erro, "Erro ao devolver empréstimo");
+                return this.ErroDe(result.Tipo, result.Erro, "Erro ao devolver empréstimo", result.ErrosValidacao);
 
             return NoContent();
         }
