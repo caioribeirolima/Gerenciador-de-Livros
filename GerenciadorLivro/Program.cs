@@ -4,11 +4,8 @@ using GerenciadorLivro.Application.Common.Behaviors;
 using GerenciadorLivro.Application.Common.Interfaces;
 using GerenciadorLivro.Core.Entities;
 using GerenciadorLivro.Core.Repositories;
-using GerenciadorLivro.Exceptions;
 using GerenciadorLivro.Infrastructure.Persisting;
 using GerenciadorLivro.Infrastructure.Persisting.Repositories;
-using Microsoft.AspNetCore.Diagnostics;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace GerenciadorLivro.API
@@ -45,6 +42,8 @@ namespace GerenciadorLivro.API
             builder.Services.AddScoped<IEditoraRepository, EditoraRepository>();
             builder.Services.AddScoped<IAutorRepository, AutorRepository>();
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+            builder.Services.AddExceptionHandler<ValidationExceptionHandler>();
+            builder.Services.AddProblemDetails();
 
             builder.Services.Configure<EmprestimoSettings>(
                 builder.Configuration.GetSection("EmprestimoSettings"));
@@ -54,32 +53,7 @@ namespace GerenciadorLivro.API
                 builder.Configuration.GetSection("PerformanceSettings"));
 
             var app = builder.Build();
-
-            app.UseExceptionHandler(exceptionHandlerApp =>
-            {
-                exceptionHandlerApp.Run(async context =>
-                {
-                    var exceptionFeature = context.Features.Get<IExceptionHandlerFeature>();
-
-                    var statusCode = exceptionFeature?.Error switch
-                    {
-                        LivroInvalidoException => StatusCodes.Status400BadRequest,
-                        _ => StatusCodes.Status500InternalServerError
-                    };
-
-                    context.Response.StatusCode = statusCode;
-                    context.Response.ContentType = "application/problem+json";
-
-                    await context.Response.WriteAsJsonAsync(new ProblemDetails
-                    {
-                        Title = statusCode == StatusCodes.Status400BadRequest
-                            ? "Requisição inválida"
-                            : "Erro interno no servidor",
-                        Detail = exceptionFeature?.Error.Message,
-                        Status = statusCode
-                    });
-                });
-            });
+            app.UseExceptionHandler();
 
             if (app.Environment.IsDevelopment())
             {

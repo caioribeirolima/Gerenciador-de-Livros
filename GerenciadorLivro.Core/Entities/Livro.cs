@@ -18,9 +18,6 @@ namespace GerenciadorLivro.Core.Entities
         public Livro() { }
 
         public int Id { get; set; }
-
-        [Required]
-        [StringLength(200, ErrorMessage = "Máximo de caracteres permitido: 200")]
         public string Titulo { get; set; }
         public int AnoPublicacao { get; set; }
         public bool Disponivel { get; set; } = true;
