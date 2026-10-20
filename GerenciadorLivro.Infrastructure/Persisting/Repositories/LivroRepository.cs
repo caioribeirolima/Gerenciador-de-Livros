@@ -11,7 +11,7 @@ namespace GerenciadorLivro.Infrastructure.Persisting.Repositories
 
         public void Adicionar(Livro livro)
         {
-            _dbContext.Livros.AddAsync(livro);
+            _dbContext.Livros.Add(livro);
         }
 
         public void AdicionarAutorAoLivro(Livro livro, Autor autor)

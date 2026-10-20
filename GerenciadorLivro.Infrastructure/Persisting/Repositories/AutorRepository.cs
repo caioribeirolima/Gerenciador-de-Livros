@@ -14,7 +14,7 @@ namespace GerenciadorLivro.Infrastructure.Persisting.Repositories
 
         public void Adicionar(Autor autor)
         {
-            _dbContext.Autores.AddAsync(autor);
+            _dbContext.Autores.Add(autor);
         }
 
         public async Task<Autor?> BuscarPorIdAsync(int id, CancellationToken cancellationToken)
