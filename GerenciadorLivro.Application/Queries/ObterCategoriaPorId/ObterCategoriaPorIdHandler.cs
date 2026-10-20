@@ -26,7 +26,7 @@ namespace GerenciadorLivro.Application.Queries.ObterCategoriaPorId
 
             if (categoria == null)
             {
-                return Result<CategoriaResponse>.Falha("Categoria inexistente");
+                return Result<CategoriaResponse>.NaoEncontrado("Categoria inexistente");
             }
 
             return Result<CategoriaResponse>.Ok(categoria);

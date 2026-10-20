@@ -2,6 +2,7 @@ using GerenciadorLivro.Application.Commands.CriarCategoria;
 using GerenciadorLivro.Application.Commands.EditarCategoria;
 using GerenciadorLivro.Application.Commands.ExcluirCategoria;
 using GerenciadorLivro.Application.Common;
+using GerenciadorLivro.Application.Queries.ObterCategoriaPorId;
 using GerenciadorLivro.Core.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -38,7 +39,7 @@ namespace GerenciadorLivro.Tests.Categorias
         }
 
         [Fact]
-        public async Task Criar_NomeDuplicado_Falha()
+        public async Task Criar_NomeDuplicado_Conflito()
         {
             using var sp = Criar();
             await sp.SemearAsync(db => db.Categorias.Add(Categoria(1, "Ficção")));
@@ -46,11 +47,12 @@ namespace GerenciadorLivro.Tests.Categorias
             var result = await EnviarAsync(sp, new CriarCategoriaCommand { Nome = "Ficção" });
 
             Assert.False(result.Sucesso);
+            Assert.Equal(TipoErro.Conflito, result.Tipo);
             Assert.Contains("já está cadastrada", result.Erro);
         }
 
         [Fact]
-        public async Task Criar_NomeDuplicadoCaseDiferente_Falha()
+        public async Task Criar_NomeDuplicadoCaseDiferente_Conflito()
         {
             using var sp = Criar();
             await sp.SemearAsync(db => db.Categorias.Add(Categoria(1, "Ficção")));
@@ -58,6 +60,7 @@ namespace GerenciadorLivro.Tests.Categorias
             var result = await EnviarAsync(sp, new CriarCategoriaCommand { Nome = "ficção" });
 
             Assert.False(result.Sucesso);
+            Assert.Equal(TipoErro.Conflito, result.Tipo);
             Assert.Contains("já está cadastrada", result.Erro);
         }
 
@@ -100,7 +103,7 @@ namespace GerenciadorLivro.Tests.Categorias
         }
 
         [Fact]
-        public async Task Editar_ParaNomeDeOutraCategoria_Falha()
+        public async Task Editar_ParaNomeDeOutraCategoria_Conflito()
         {
             using var sp = Criar();
             await sp.SemearAsync(db =>
@@ -112,7 +115,19 @@ namespace GerenciadorLivro.Tests.Categorias
             var result = await EnviarAsync(sp, new EditarCategoriaCommand { Id = 1, Nome = "Terror" });
 
             Assert.False(result.Sucesso);
+            Assert.Equal(TipoErro.Conflito, result.Tipo);
             Assert.Contains("Terror", result.Erro);
+        }
+
+        [Fact]
+        public async Task Editar_CategoriaInexistente_NaoEncontrado()
+        {
+            using var sp = Criar();
+
+            var result = await EnviarAsync(sp, new EditarCategoriaCommand { Id = 99, Nome = "Terror" });
+
+            Assert.False(result.Sucesso);
+            Assert.Equal(TipoErro.NaoEncontrado, result.Tipo);
         }
 
         [Fact]
@@ -132,7 +147,7 @@ namespace GerenciadorLivro.Tests.Categorias
         // ---------- Excluir ----------
 
         [Fact]
-        public async Task Excluir_ComLivroExcluidoVinculado_Falha()
+        public async Task Excluir_ComLivroExcluidoVinculado_Conflito()
         {
             using var sp = Criar();
             await sp.SemearAsync(db =>
@@ -146,7 +161,30 @@ namespace GerenciadorLivro.Tests.Categorias
             var result = await EnviarAsync(sp, new ExcluirCategoriaCommand { Id = 1 });
 
             Assert.False(result.Sucesso);
+            Assert.Equal(TipoErro.Conflito, result.Tipo);
             Assert.Contains("livros vinculados", result.Erro);
+        }
+
+        [Fact]
+        public async Task Excluir_CategoriaInexistente_NaoEncontrado()
+        {
+            using var sp = Criar();
+
+            var result = await EnviarAsync(sp, new ExcluirCategoriaCommand { Id = 99 });
+
+            Assert.False(result.Sucesso);
+            Assert.Equal(TipoErro.NaoEncontrado, result.Tipo);
+        }
+
+        [Fact]
+        public async Task ObterPorId_CategoriaInexistente_NaoEncontrado()
+        {
+            using var sp = Criar();
+
+            var result = await EnviarAsync(sp, new ObterCategoriaPorIdQuery { Id = 99 });
+
+            Assert.False(result.Sucesso);
+            Assert.Equal(TipoErro.NaoEncontrado, result.Tipo);
         }
 
         [Fact]

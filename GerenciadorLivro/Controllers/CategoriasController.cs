@@ -44,14 +44,7 @@ namespace GerenciadorLivro.Controllers
             var result = await _mediator.Send(new ObterCategoriaPorIdQuery { Id = id });
 
             if (!result.Sucesso)
-            {
-                return NotFound(new ProblemDetails
-                {
-                    Title = "Categoria não encontrada",
-                    Detail = result.Erro,
-                    Status = StatusCodes.Status404NotFound
-                });
-            }
+                return this.ErroDe(result.Tipo, result.Erro, "Categoria não encontrada");
 
             return Ok(result.Valor);
         }
@@ -84,14 +77,7 @@ namespace GerenciadorLivro.Controllers
             var result = await _mediator.Send(new ExcluirCategoriaCommand { Id = id });
 
             if (!result.Sucesso)
-            {
-                return BadRequest(new ProblemDetails
-                {
-                    Title = "Erro ao excluir categoria",
-                    Detail = result.Erro,
-                    Status = StatusCodes.Status400BadRequest
-                });
-            }
+                return this.ErroDe(result.Tipo, result.Erro, "Erro ao excluir categoria");
 
             return NoContent();
         }

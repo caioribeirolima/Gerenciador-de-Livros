@@ -29,7 +29,7 @@ namespace GerenciadorLivro.Application.Commands.CriarCategoria
 
             if (existsCategoria)
             {
-                return Result<int>.Falha("Uma categoria já está cadastrada com este nome");
+                return Result<int>.Conflito("Uma categoria já está cadastrada com este nome");
             }
 
             var categoria = new Categoria

@@ -26,7 +26,7 @@ namespace GerenciadorLivro.Application.Commands.ExcluirCategoria
 
             if (categoria == null)
             {
-                return Result.Falha("Categoria não existe");
+                return Result.NaoEncontrado("Categoria não existe");
             }
 
             var possuiLivros = await _livroRepository
@@ -35,7 +35,7 @@ namespace GerenciadorLivro.Application.Commands.ExcluirCategoria
 
             if (possuiLivros)
             {
-                return Result.Falha("Existem livros vinculados a esta categoria (incluindo livros excluídos)");
+                return Result.Conflito("Existem livros vinculados a esta categoria (incluindo livros excluídos)");
             }
 
             _categoriaRepository.Excluir(categoria);

@@ -24,7 +24,7 @@ namespace GerenciadorLivro.Application.Commands.EditarCategoria
                 .BuscarPorIdAsync(command.Id, cancellationToken);
 
             if (categoria == null)
-                return Result.Falha("Categoria inexistente");
+                return Result.NaoEncontrado("Categoria inexistente");
 
             if (!string.Equals(categoria.Nome, nomeLimpo, StringComparison.OrdinalIgnoreCase))
             {
@@ -32,7 +32,7 @@ namespace GerenciadorLivro.Application.Commands.EditarCategoria
                     .ExisteComNomeAsync(nomeLimpo, cancellationToken);
 
                 if (existsCategoria)
-                    return Result.Falha($"Categoria com nome {nomeLimpo} já existe");
+                    return Result.Conflito($"Categoria com nome {nomeLimpo} já existe");
             }
 
             categoria.Nome = nomeLimpo;
