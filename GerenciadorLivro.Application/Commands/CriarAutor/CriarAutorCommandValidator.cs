@@ -1,4 +1,5 @@
 using FluentValidation;
+using GerenciadorLivro.Application.Common.Validation;
 
 namespace GerenciadorLivro.Application.Commands.CriarAutor
 {
@@ -6,9 +7,7 @@ namespace GerenciadorLivro.Application.Commands.CriarAutor
     {
         public CriarAutorCommandValidator()
         {
-            RuleFor(x => x.Nome)
-                .NotEmpty().WithMessage("O nome do autor é obrigatório.")
-                .MaximumLength(150).WithMessage("O nome do autor deve ter no máximo 150 caracteres.");
+            RuleFor(x => x.Nome).NomeObrigatorio(150, "nome do autor");
         }
     }
 }

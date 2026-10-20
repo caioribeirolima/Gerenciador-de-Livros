@@ -1,4 +1,5 @@
 using FluentValidation;
+using GerenciadorLivro.Application.Common.Validation;
 
 namespace GerenciadorLivro.Application.Commands.CriarEditora
 {
@@ -6,9 +7,7 @@ namespace GerenciadorLivro.Application.Commands.CriarEditora
     {
         public CriarEditoraCommandValidator()
         {
-            RuleFor(x => x.Nome)
-                .NotEmpty().WithMessage("O nome da editora é obrigatório.")
-                .MaximumLength(100).WithMessage("O nome da editora deve ter no máximo 100 caracteres.");
+            RuleFor(x => x.Nome).NomeObrigatorio(100, "nome da editora");
         }
     }
 }

@@ -1,4 +1,5 @@
 using FluentValidation;
+using GerenciadorLivro.Application.Common.Validation;
 
 namespace GerenciadorLivro.Application.Commands.CriarCategoria
 {
@@ -6,9 +7,7 @@ namespace GerenciadorLivro.Application.Commands.CriarCategoria
     {
         public CriarCategoriaCommandValidator()
         {
-            RuleFor(x => x.Nome)
-                .NotEmpty().WithMessage("O nome da categoria é obrigatório.")
-                .MaximumLength(100).WithMessage("O nome da categoria deve ter no máximo 100 caracteres.");
+            RuleFor(x => x.Nome).NomeObrigatorio(100, "nome da categoria");
         }
     }
 }
