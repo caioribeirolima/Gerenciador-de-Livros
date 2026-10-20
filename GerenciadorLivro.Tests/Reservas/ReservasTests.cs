@@ -211,7 +211,6 @@ namespace GerenciadorLivro.Tests.Reservas
             Assert.True(result.Sucesso);
             var livroDisponivel = await sp.LerAsync(db => db.Livros.Where(l => l.Id == 1).Select(l => l.Disponivel).SingleAsync());
             Assert.False(livroDisponivel);
-            Assert.Equal(TipoErro.NaoEncontrado, result.Tipo);
         }
 
         [Fact]
@@ -231,7 +230,7 @@ namespace GerenciadorLivro.Tests.Reservas
             Assert.Contains("reservado para outro usuário", result.Erro);
             var emprestimos = await sp.LerAsync(db => db.Emprestimos.CountAsync());
             Assert.Equal(0, emprestimos);
-            Assert.Equal(TipoErro.NaoEncontrado, result.Tipo);
+            Assert.Equal(TipoErro.Conflito, result.Tipo);
         }
 
         [Fact]
@@ -251,7 +250,6 @@ namespace GerenciadorLivro.Tests.Reservas
             var reserva = await sp.LerAsync(db => db.Reservas.SingleAsync(r => r.Id == 1));
             Assert.Equal(StatusReserva.Atendida, reserva.Status);
             Assert.NotNull(reserva.DataEncerramento);
-            Assert.Equal(TipoErro.NaoEncontrado, result.Tipo);
         }
 
         [Fact]
@@ -268,7 +266,6 @@ namespace GerenciadorLivro.Tests.Reservas
             Assert.Contains(nameof(RegistrarEmprestimoCommand.UsuarioId), campos);
             var emprestimos = await sp.LerAsync(db => db.Emprestimos.CountAsync());
             Assert.Equal(0, emprestimos);
-
         }
 
         [Fact]
