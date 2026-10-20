@@ -55,14 +55,7 @@ namespace GerenciadorLivro.Controllers
             var result = await _mediator.Send(new ExcluirEditoraCommand { Id = id });
 
             if (!result.Sucesso)
-            {
-                return BadRequest(new ProblemDetails
-                {
-                    Title = "Erro ao excluir editora",
-                    Detail = result.Erro,
-                    Status = StatusCodes.Status400BadRequest,
-                });
-            }
+                return this.ErroDe(result.Tipo, result.Erro, "Erro ao excluir editora");
 
             return NoContent();
         }

@@ -25,14 +25,14 @@ namespace GerenciadorLivro.Application.Commands.ExcluirEditora
 
             if (editora == null)
             {
-                return Result.Falha("Editora não existe");
+                return Result.NaoEncontrado("Editora não existe");
             }
 
             var possuiLivros = await _livroRepository.ExisteLivroNaEditoraAsync(command.Id, cancellationToken);
 
             if (possuiLivros)
             {
-                return Result.Falha("Existem livros vinculados a esta editora (incluindo livros excluídos)");
+                return Result.Conflito("Existem livros vinculados a esta editora (incluindo livros excluídos)");
             }
 
             _editoraRepository.Excluir(editora);

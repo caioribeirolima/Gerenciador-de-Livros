@@ -27,7 +27,7 @@ namespace GerenciadorLivro.Application.Commands.CriarEditora
 
             if (exists)
             {
-                return Result<int>.Falha($"Editora com nome {nome} já existe");
+                return Result<int>.Conflito($"Editora com nome {nome} já existe");
             }
 
             var editora = new Editora

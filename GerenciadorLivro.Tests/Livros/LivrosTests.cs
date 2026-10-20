@@ -359,7 +359,7 @@ namespace GerenciadorLivro.Tests.Livros
         // ---------- ExcluirEditora ----------
 
         [Fact]
-        public async Task ExcluirEditora_ComLivroExcluidoVinculado_Falha()
+        public async Task ExcluirEditora_ComLivroExcluidoVinculado_Conflito()
         {
             using var sp = Criar();
             await sp.SemearAsync(db =>
@@ -373,7 +373,33 @@ namespace GerenciadorLivro.Tests.Livros
             var result = await EnviarAsync(sp, new ExcluirEditoraCommand { Id = 1 });
 
             Assert.False(result.Sucesso);
+            Assert.Equal(TipoErro.Conflito, result.Tipo);
             Assert.Contains("livros vinculados", result.Erro);
+        }
+
+        [Fact]
+        public async Task ExcluirEditora_EditoraInexistente_NaoEncontrado()
+        {
+            using var sp = Criar();
+
+            var result = await EnviarAsync(sp, new ExcluirEditoraCommand { Id = 99 });
+
+            Assert.False(result.Sucesso);
+            Assert.Equal(TipoErro.NaoEncontrado, result.Tipo);
+        }
+
+        [Fact]
+        public async Task CriarEditora_NomeDuplicadoCaseDiferente_Conflito()
+        {
+            using var sp = Criar();
+            await sp.SemearAsync(db => db.Editoras.Add(Editora(1, "Companhia das Letras")));
+
+            var result = await EnviarAsync(sp, new CriarEditoraCommand { Nome = "companhia DAS letras" });
+
+            Assert.False(result.Sucesso);
+            Assert.Equal(TipoErro.Conflito, result.Tipo);
+            var total = await sp.LerAsync(db => db.Editoras.CountAsync());
+            Assert.Equal(1, total);
         }
     }
 }
