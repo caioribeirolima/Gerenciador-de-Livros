@@ -85,7 +85,7 @@ namespace GerenciadorLivro.API.Controllers
                 EmprestimoId = id,
             });
             if (!result.Sucesso)
-                return this.ErroDe(result.Tipo, result.Erro, "Erro ao renovar empréstimo");
+                return this.ErroDe(result.Tipo, result.Erro, "Erro ao renovar empréstimo", result.ErrosValidacao);
             return NoContent();
         }
     }

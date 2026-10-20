@@ -1,6 +1,10 @@
 using GerenciadorLivro.Application.Commands.AdicionarAutorAoLivro;
 using GerenciadorLivro.Application.Commands.CancelarReserva;
 using GerenciadorLivro.Application.Commands.DevolverEmprestimo;
+using GerenciadorLivro.Application.Commands.ExcluirCategoria;
+using GerenciadorLivro.Application.Commands.ExcluirEditora;
+using GerenciadorLivro.Application.Commands.ExcluirLivro;
+using GerenciadorLivro.Application.Commands.RenovarEmprestimo;
 using GerenciadorLivro.Application.Commands.ReservarLivro;
 using GerenciadorLivro.Application.Common;
 using GerenciadorLivro.Core.Repositories;
@@ -25,7 +29,7 @@ namespace GerenciadorLivro.Tests.Common
         }
 
         // Cada linha tem UM id inválido e o outro válido, para que o teste quebre se a regra daquele id sumir.
-        // Adicionar: a = AutorId, b = LivroId. Reservar: a = LivroId, b = UsuarioId. Cancelar e Devolver usam só "a".
+        // Adicionar: a = AutorId, b = LivroId. Reservar: a = LivroId, b = UsuarioId. Os demais (Cancelar, Devolver, Renovar, Excluir*) usam só "a".
         [Theory]
         [InlineData(nameof(AdicionarAutorAoLivroCommand), 0, 1)]
         [InlineData(nameof(AdicionarAutorAoLivroCommand), 1, 0)]
@@ -36,6 +40,10 @@ namespace GerenciadorLivro.Tests.Common
         [InlineData(nameof(ReservarLivroCommand), 0, 1)]
         [InlineData(nameof(ReservarLivroCommand), 1, 0)]
         [InlineData(nameof(ReservarLivroCommand), -5, 1)]
+        [InlineData(nameof(RenovarEmprestimoCommand), 0, 1)]
+        [InlineData(nameof(ExcluirLivroCommand), 0, 1)]
+        [InlineData(nameof(ExcluirCategoriaCommand), -1, 1)]
+        [InlineData(nameof(ExcluirEditoraCommand), 0, 1)]
         public async Task IdInvalido_RetornaValidacaoSemGravar(string comando, int a, int b)
         {
             var espiao = new UnitOfWorkEspiao();
@@ -48,6 +56,10 @@ namespace GerenciadorLivro.Tests.Common
                 nameof(AdicionarAutorAoLivroCommand) => (await mediator.Send(new AdicionarAutorAoLivroCommand { AutorId = a, LivroId = b })).Tipo,
                 nameof(CancelarReservaCommand) => (await mediator.Send(new CancelarReservaCommand { ReservaId = a })).Tipo,
                 nameof(DevolverEmprestimoCommand) => (await mediator.Send(new DevolverEmprestimoCommand { EmprestimoId = a })).Tipo,
+                nameof(RenovarEmprestimoCommand) => (await mediator.Send(new RenovarEmprestimoCommand { EmprestimoId = a })).Tipo,
+                nameof(ExcluirLivroCommand) => (await mediator.Send(new ExcluirLivroCommand { Id = a })).Tipo,
+                nameof(ExcluirCategoriaCommand) => (await mediator.Send(new ExcluirCategoriaCommand { Id = a })).Tipo,
+                nameof(ExcluirEditoraCommand) => (await mediator.Send(new ExcluirEditoraCommand { Id = a })).Tipo,
                 nameof(ReservarLivroCommand) => (await mediator.Send(new ReservarLivroCommand { LivroId = a, UsuarioId = b })).Tipo,
                 _ => throw new ArgumentOutOfRangeException(nameof(comando), comando, null)
             };

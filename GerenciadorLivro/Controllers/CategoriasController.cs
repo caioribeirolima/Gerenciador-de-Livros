@@ -77,7 +77,7 @@ namespace GerenciadorLivro.Controllers
             var result = await _mediator.Send(new ExcluirCategoriaCommand { Id = id });
 
             if (!result.Sucesso)
-                return this.ErroDe(result.Tipo, result.Erro, "Erro ao excluir categoria");
+                return this.ErroDe(result.Tipo, result.Erro, "Erro ao excluir categoria", result.ErrosValidacao);
 
             return NoContent();
         }

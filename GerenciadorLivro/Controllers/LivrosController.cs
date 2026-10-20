@@ -134,7 +134,7 @@ namespace GerenciadorLivro.Controllers
             var result = await _mediator.Send(new ExcluirLivroCommand { Id = id });
 
             if (!result.Sucesso)
-                return this.ErroDe(result.Tipo, result.Erro, "Livro não encontrado");
+                return this.ErroDe(result.Tipo, result.Erro, "Erro ao excluir livro", result.ErrosValidacao);
 
             return NoContent();
         }
