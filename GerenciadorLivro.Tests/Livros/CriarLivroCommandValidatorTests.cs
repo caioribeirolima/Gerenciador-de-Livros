@@ -74,45 +74,63 @@ namespace GerenciadorLivro.Tests.Livros
         // ---------- Ids ----------
 
         [Theory]
-        [InlineData(0, true)]
-        [InlineData(1, false)]
-        public void CategoriaId_Limite(int categoriaId, bool temErro)
+        [InlineData(0)]
+        [InlineData(-1)]
+        public void CategoriaId_NaoPositivo_Invalido(int categoriaId)
         {
             var command = ComandoValido();
             command.CategoriaId = categoriaId;
 
-            var resultado = _validator.TestValidate(command);
+            _validator.TestValidate(command).ShouldHaveValidationErrorFor(x => x.CategoriaId);
+        }
 
-            if (temErro) resultado.ShouldHaveValidationErrorFor(x => x.CategoriaId);
-            else resultado.ShouldNotHaveValidationErrorFor(x => x.CategoriaId);
+        [Fact]
+        public void CategoriaId_Um_Valido()
+        {
+            var command = ComandoValido();
+            command.CategoriaId = 1;
+
+            _validator.TestValidate(command).ShouldNotHaveValidationErrorFor(x => x.CategoriaId);
         }
 
         [Theory]
-        [InlineData(0, true)]
-        [InlineData(1, false)]
-        public void EditoraId_Limite(int editoraId, bool temErro)
+        [InlineData(0)]
+        [InlineData(-1)]
+        public void EditoraId_NaoPositivo_Invalido(int editoraId)
         {
             var command = ComandoValido();
             command.EditoraId = editoraId;
 
-            var resultado = _validator.TestValidate(command);
+            _validator.TestValidate(command).ShouldHaveValidationErrorFor(x => x.EditoraId);
+        }
 
-            if (temErro) resultado.ShouldHaveValidationErrorFor(x => x.EditoraId);
-            else resultado.ShouldNotHaveValidationErrorFor(x => x.EditoraId);
+        [Fact]
+        public void EditoraId_Um_Valido()
+        {
+            var command = ComandoValido();
+            command.EditoraId = 1;
+
+            _validator.TestValidate(command).ShouldNotHaveValidationErrorFor(x => x.EditoraId);
         }
 
         [Theory]
-        [InlineData(0, true)]
-        [InlineData(1, false)]
-        public void AutorId_Limite(int autorId, bool temErro)
+        [InlineData(0)]
+        [InlineData(-1)]
+        public void AutorId_NaoPositivo_Invalido(int autorId)
         {
             var command = ComandoValido();
             command.AutorIds = new List<int> { autorId };
 
-            var resultado = _validator.TestValidate(command);
+            _validator.TestValidate(command).ShouldHaveValidationErrorFor("AutorIds[0]");
+        }
 
-            if (temErro) resultado.ShouldHaveValidationErrorFor("AutorIds[0]");
-            else resultado.ShouldNotHaveValidationErrorFor("AutorIds[0]");
+        [Fact]
+        public void AutorId_Um_Valido()
+        {
+            var command = ComandoValido();
+            command.AutorIds = new List<int> { 1 };
+
+            _validator.TestValidate(command).ShouldNotHaveValidationErrorFor("AutorIds[0]");
         }
     }
 }
