@@ -8,5 +8,6 @@ namespace GerenciadorLivro.Application.DTOs.ViewModels
         public DateTime DataEmprestimo { get; set; }
         public DateTime DataDevolucaoPrevista { get; set; }
         public DateTime? DataDevolucaoReal { get; set; }
+        public int Renovacoes { get; set; }
     }
 }

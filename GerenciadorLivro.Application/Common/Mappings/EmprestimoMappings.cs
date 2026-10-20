@@ -14,7 +14,8 @@ namespace GerenciadorLivro.Application.Common.Mappings
                 UsuarioNome = e.Usuario != null ? e.Usuario.Nome : string.Empty,
                 DataEmprestimo = e.DataEmprestimo,
                 DataDevolucaoPrevista = e.DataDevolucaoPrevista,
-                DataDevolucaoReal = e.DataDevolucaoReal
+                DataDevolucaoReal = e.DataDevolucaoReal,
+                Renovacoes = e.Renovacoes
             });
         }
     }

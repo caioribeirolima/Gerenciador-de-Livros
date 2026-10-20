@@ -109,6 +109,9 @@ namespace GerenciadorLivro.Infrastructure.Migrations
                     b.Property<int>("LivroId")
                         .HasColumnType("int");
 
+                    b.Property<int>("Renovacoes")
+                        .HasColumnType("int");
+
                     b.Property<int>("UsuarioId")
                         .HasColumnType("int");
 
