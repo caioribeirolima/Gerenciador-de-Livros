@@ -18,7 +18,6 @@
         }
 
         public static Result<T> Ok(T valor) => new Result<T>(true, valor, null, null, null);
-        public static Result<T> Falha(string erro) => new Result<T>(false, default, erro, TipoErro.NaoClassificado, null);
         public static Result<T> NaoEncontrado(string erro) => new Result<T>(false, default, erro, TipoErro.NaoEncontrado, null);
         public static Result<T> Conflito(string erro) => new Result<T>(false, default, erro, TipoErro.Conflito, null);
         public static Result<T> Validacao(IReadOnlyDictionary<string, string[]> erros)
@@ -42,7 +41,6 @@
         }
 
         public static Result Ok() => new Result(true, null, null, null);
-        public static Result Falha(string erro) => new Result(false, erro, TipoErro.NaoClassificado, null);
         public static Result NaoEncontrado(string erro) => new Result(false, erro, TipoErro.NaoEncontrado, null);
         public static Result Conflito(string erro) => new Result(false, erro, TipoErro.Conflito, null);
         public static Result Validacao(IReadOnlyDictionary<string, string[]> erros)
