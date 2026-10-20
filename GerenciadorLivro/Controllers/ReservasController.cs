@@ -1,3 +1,4 @@
+using GerenciadorLivro.API.Extensions;
 using GerenciadorLivro.Application.Commands.CancelarReserva;
 using GerenciadorLivro.Application.Commands.ReservarLivro;
 using GerenciadorLivro.Application.DTOs.InputModels;
@@ -31,14 +32,7 @@ namespace GerenciadorLivro.API.Controllers
             }, cancellationToken);
 
             if (!result.Sucesso)
-            {
-                return BadRequest(new ProblemDetails
-                {
-                    Title = "Erro ao reservar livro",
-                    Detail = result.Erro,
-                    Status = StatusCodes.Status400BadRequest,
-                });
-            }
+                return this.ErroDe(result.Tipo, result.Erro, "Erro ao reservar livro");
 
             return CreatedAtRoute("ObterReservaPorId", new { id = result.Valor }, new { id = result.Valor });
         }

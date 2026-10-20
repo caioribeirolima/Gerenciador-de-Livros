@@ -27,7 +27,7 @@ namespace GerenciadorLivro.Tests.Reservas
         // ---------- Reservar ----------
 
         [Fact]
-        public async Task Reservar_LivroOuUsuarioInexistente_Falha()
+        public async Task Reservar_LivroOuUsuarioInexistente_NaoEncontrado()
         {
             using var sp = Criar();
             await sp.SemearAsync(db => { db.Livros.Add(Livro(1, false)); db.Usuarios.Add(Usuario(1)); });
@@ -36,13 +36,15 @@ namespace GerenciadorLivro.Tests.Reservas
             var semUsuario = await EnviarAsync(sp, new ReservarLivroCommand { LivroId = 1, UsuarioId = 99 });
 
             Assert.False(semLivro.Sucesso);
+            Assert.Equal(TipoErro.NaoEncontrado, semLivro.Tipo);
             Assert.Contains("Livro de id 99", semLivro.Erro);
             Assert.False(semUsuario.Sucesso);
+            Assert.Equal(TipoErro.NaoEncontrado, semUsuario.Tipo);
             Assert.Contains("Usuário de id 99", semUsuario.Erro);
         }
 
         [Fact]
-        public async Task Reservar_LivroDisponivel_Falha()
+        public async Task Reservar_LivroDisponivel_Conflito()
         {
             using var sp = Criar();
             await sp.SemearAsync(db => { db.Livros.Add(Livro(1, true)); db.Usuarios.Add(Usuario(1)); });
@@ -50,6 +52,7 @@ namespace GerenciadorLivro.Tests.Reservas
             var result = await EnviarAsync(sp, new ReservarLivroCommand { LivroId = 1, UsuarioId = 1 });
 
             Assert.False(result.Sucesso);
+            Assert.Equal(TipoErro.Conflito, result.Tipo);
             Assert.Contains("disponível", result.Erro);
         }
 
@@ -67,7 +70,7 @@ namespace GerenciadorLivro.Tests.Reservas
         }
 
         [Fact]
-        public async Task Reservar_ComReservaAtivaOuNotificadaDuplicada_Falha()
+        public async Task Reservar_ComReservaAtivaOuNotificadaDuplicada_Conflito()
         {
             using var sp = Criar();
             await sp.SemearAsync(db =>
@@ -82,12 +85,14 @@ namespace GerenciadorLivro.Tests.Reservas
             var duplicadaNotificada = await EnviarAsync(sp, new ReservarLivroCommand { LivroId = 2, UsuarioId = 2 });
 
             Assert.False(duplicadaAtiva.Sucesso);
+            Assert.Equal(TipoErro.Conflito, duplicadaAtiva.Tipo);
             Assert.Contains("reserva pendente", duplicadaAtiva.Erro);
             Assert.False(duplicadaNotificada.Sucesso);
+            Assert.Equal(TipoErro.Conflito, duplicadaNotificada.Tipo);
         }
 
         [Fact]
-        public async Task Reservar_UsuarioJaEstaComOLivro_Falha()
+        public async Task Reservar_UsuarioJaEstaComOLivro_Conflito()
         {
             using var sp = Criar();
             await sp.SemearAsync(db =>
@@ -100,6 +105,7 @@ namespace GerenciadorLivro.Tests.Reservas
             var result = await EnviarAsync(sp, new ReservarLivroCommand { LivroId = 1, UsuarioId = 1 });
 
             Assert.False(result.Sucesso);
+            Assert.Equal(TipoErro.Conflito, result.Tipo);
             Assert.Contains("emprestado", result.Erro);
         }
 

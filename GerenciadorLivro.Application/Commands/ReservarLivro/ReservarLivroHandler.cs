@@ -34,35 +34,35 @@ namespace GerenciadorLivro.Application.Commands.ReservarLivro
 
             if (livro == null)
             {
-                return Result<int>.Falha($"Livro de id {command.LivroId} não encontrado");
+                return Result<int>.NaoEncontrado($"Livro de id {command.LivroId} não encontrado");
             }
 
             var usuarioExiste = await _usuarioRepository.ExisteAsync(command.UsuarioId, cancellationToken);
 
             if (!usuarioExiste)
             {
-                return Result<int>.Falha($"Usuário de id {command.UsuarioId} não encontrado");
+                return Result<int>.NaoEncontrado($"Usuário de id {command.UsuarioId} não encontrado");
             }
 
             var guardadoParaOutroUsuario = await _reservaRepository.ExisteReservaNotificadaDeOutroUsuarioAsync(command.LivroId, command.UsuarioId, cancellationToken);
 
             if (livro.Disponivel && !guardadoParaOutroUsuario)
             {
-                return Result<int>.Falha($"Livro de id {command.LivroId} está disponível. Registre o empréstimo em vez de reservar");
+                return Result<int>.Conflito($"Livro de id {command.LivroId} está disponível. Registre o empréstimo em vez de reservar");
             }
 
             var reservaDuplicada = await _reservaRepository.ExisteReservaPendenteAsync(command.LivroId, command.UsuarioId, cancellationToken);
 
             if (reservaDuplicada)
             {
-                return Result<int>.Falha($"Usuário de id {command.UsuarioId} já possui uma reserva pendente para o livro de id {command.LivroId}");
+                return Result<int>.Conflito($"Usuário de id {command.UsuarioId} já possui uma reserva pendente para o livro de id {command.LivroId}");
             }
 
             var usuarioEstaComLivro = await _emprestimoRepository.ExisteEmprestimoAbertoDoUsuarioAsync(command.LivroId, command.UsuarioId, cancellationToken);
 
             if (usuarioEstaComLivro)
             {
-                return Result<int>.Falha($"Usuário de id {command.UsuarioId} já está com o livro de id {command.LivroId} emprestado");
+                return Result<int>.Conflito($"Usuário de id {command.UsuarioId} já está com o livro de id {command.LivroId} emprestado");
             }
 
             var reserva = new Reserva(command.LivroId, command.UsuarioId, DateTime.Now);
@@ -84,7 +84,7 @@ namespace GerenciadorLivro.Application.Commands.ReservarLivro
                     throw;
                 }
 
-                return Result<int>.Falha($"Usuário de id {command.UsuarioId} já possui uma reserva pendente para o livro de id {command.LivroId}");
+                return Result<int>.Conflito($"Usuário de id {command.UsuarioId} já possui uma reserva pendente para o livro de id {command.LivroId}");
             }
 
             return Result<int>.Ok(reserva.Id);
