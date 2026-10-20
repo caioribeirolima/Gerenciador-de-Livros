@@ -20,17 +20,7 @@ namespace GerenciadorLivro.Application.Commands.CriarEditora
 
         public async Task<Result<int>> Handle(CriarEditoraCommand command, CancellationToken cancellationToken)
         {
-            if (string.IsNullOrWhiteSpace(command.Nome))
-            {
-                return Result<int>.Falha("Nome da editora inválido");
-            }
-
             var nome = command.Nome.Trim();
-
-            if (nome.Length > 100)
-            {
-                return Result<int>.Falha("Nome não pode ter mais que 100 caracteres");
-            }
 
             var exists = await _editoraRepository
                 .ExisteComNomeAsync(nome, cancellationToken);

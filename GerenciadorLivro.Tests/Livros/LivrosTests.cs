@@ -1,5 +1,6 @@
 using GerenciadorLivro.Application.Commands.AdicionarAutorAoLivro;
 using GerenciadorLivro.Application.Commands.CriarAutor;
+using GerenciadorLivro.Application.Commands.CriarEditora;
 using GerenciadorLivro.Application.Commands.CriarLivro;
 using GerenciadorLivro.Application.Commands.EditarLivro;
 using GerenciadorLivro.Application.Commands.ExcluirEditora;
@@ -327,6 +328,31 @@ namespace GerenciadorLivro.Tests.Livros
             Assert.Equal(TipoErro.Validacao, result.Tipo);
             Assert.True(result.ErrosValidacao!.ContainsKey(nameof(CriarAutorCommand.Nome)));
             var total = await sp.LerAsync(db => db.Autores.CountAsync());
+            Assert.Equal(0, total);
+        }
+
+        [Fact]
+        public async Task CriarEditora_NomeVazio_RetornaValidacaoSemGravar()
+        {
+            using var sp = Criar();
+
+            var result = await EnviarAsync(sp, new CriarEditoraCommand { Nome = "   " });
+
+            Assert.Equal(TipoErro.Validacao, result.Tipo);
+            Assert.True(result.ErrosValidacao!.ContainsKey(nameof(CriarEditoraCommand.Nome)));
+            var total = await sp.LerAsync(db => db.Editoras.CountAsync());
+            Assert.Equal(0, total);
+        }
+
+        [Fact]
+        public async Task CriarEditora_NomeMaiorQue100_RetornaValidacaoSemGravar()
+        {
+            using var sp = Criar();
+
+            var result = await EnviarAsync(sp, new CriarEditoraCommand { Nome = new string('a', 101) });
+
+            Assert.Equal(TipoErro.Validacao, result.Tipo);
+            var total = await sp.LerAsync(db => db.Editoras.CountAsync());
             Assert.Equal(0, total);
         }
 
