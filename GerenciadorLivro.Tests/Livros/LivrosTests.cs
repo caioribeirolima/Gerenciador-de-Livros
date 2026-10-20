@@ -201,6 +201,17 @@ namespace GerenciadorLivro.Tests.Livros
             Assert.True(persistido.Excluido);
         }
 
+        [Fact]
+        public async Task ExcluirLivro_LivroInexistente_NaoEncontrado()
+        {
+            using var sp = Criar();
+
+            var result = await EnviarAsync(sp, new ExcluirLivroCommand { Id = 99 });
+
+            Assert.False(result.Sucesso);
+            Assert.Equal(TipoErro.NaoEncontrado, result.Tipo);
+        }
+
         // ---------- AdicionarAutorAoLivro ----------
 
         [Fact]
