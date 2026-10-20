@@ -30,6 +30,7 @@ namespace GerenciadorLivro.Tests.Reservas
             services.AddScoped<IEditoraRepository, EditoraRepository>();
             services.AddScoped<IAutorRepository, AutorRepository>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
+            services.AddSingleton(TimeProvider.System);
             services.Configure<EmprestimoSettings>(s => s.DiasParaDevolucao = 7);
             services.AddMediatR(cfg =>
             {

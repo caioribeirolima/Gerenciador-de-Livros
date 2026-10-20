@@ -4,14 +4,14 @@ namespace GerenciadorLivro.Application.Commands.CriarLivro
 {
     public class CriarLivroCommandValidator : AbstractValidator<CriarLivroCommand>
     {
-        public CriarLivroCommandValidator()
+        public CriarLivroCommandValidator(TimeProvider timeProvider)
         {
             RuleFor(x => x.Titulo)
                 .NotEmpty().WithMessage("O título do livro é obrigatório.")
                 .MaximumLength(200).WithMessage("O título do livro não pode exceder 200 caracteres.");
 
             RuleFor(x => x.AnoPublicacao)
-                .LessThanOrEqualTo(_ => DateTime.Now.Year)
+                .LessThanOrEqualTo(_ => timeProvider.GetLocalNow().Year)
                 .WithMessage("Ano de publicação não pode ser maior que o ano atual.");
 
             RuleForEach(x => x.AutorIds)
