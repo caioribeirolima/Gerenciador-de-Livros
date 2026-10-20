@@ -31,7 +31,7 @@ namespace GerenciadorLivro.Application.Commands.CriarLivro
                 return Result<int>.Falha($"Livro com ano de publicação {command.AnoPublicacao} inválido");
 
             var autores = await _autorRepository
-                .ListarPorIdAsync(command.AutorIds, cancellationToken);
+                .ListarPorIdsAsync(command.AutorIds, cancellationToken);
 
             var livro = new Livro
             {

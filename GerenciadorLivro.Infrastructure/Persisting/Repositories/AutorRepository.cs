@@ -25,7 +25,7 @@ namespace GerenciadorLivro.Infrastructure.Persisting.Repositories
             return autor;
         }
 
-        public async Task<List<Autor>> ListarPorIdAsync(List<int> autoresId, CancellationToken cancellationToken)
+        public async Task<List<Autor>> ListarPorIdsAsync(IEnumerable<int> autoresId, CancellationToken cancellationToken)
         {
             var autores = await _dbContext.Autores
                 .Where(a => autoresId.Contains(a.Id))

@@ -10,7 +10,7 @@ namespace GerenciadorLivro.Core.Repositories
         Task<Livro?> BuscarPorIdIncluindoAutoresAsync(int id, CancellationToken cancellationToken);
         Task<bool> ExisteLivroNaCategoriaAsync(int categoriaId, CancellationToken cancellationToken);
         Task<bool> ExisteLivroNaEditoraAsync(int id, CancellationToken cancellationToken);
-        Task<bool> VerificarLivroDisponivel(int id, CancellationToken cancellationToken);
+        Task<bool> ExisteLivroDisponivelAsync(int id, CancellationToken cancellationToken);
         void Excluir(Livro livro);
     }
 }

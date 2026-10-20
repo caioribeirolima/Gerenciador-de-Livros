@@ -48,7 +48,7 @@ namespace GerenciadorLivro.Application.Notifications.Reservas
         private async Task AtenderProximaAsync(int livroId, CancellationToken cancellationToken)
         {
             var livroDisponivel = await _livroRepository
-                .VerificarLivroDisponivel(livroId, cancellationToken);
+                .ExisteLivroDisponivelAsync(livroId, cancellationToken);
 
             if (!livroDisponivel)
             {
@@ -56,7 +56,7 @@ namespace GerenciadorLivro.Application.Notifications.Reservas
             }
 
             var jaExisteNotificada = await _reservaRepository
-                .ExisteReservaLivroNotificada(livroId, cancellationToken);
+                .ExisteReservaNotificadaDoLivroAsync(livroId, cancellationToken);
 
             if (jaExisteNotificada)
             {
@@ -64,7 +64,7 @@ namespace GerenciadorLivro.Application.Notifications.Reservas
             }
 
             var proxima = await _reservaRepository
-                .BuscarReservaAtivaOrdenadaPorNome(livroId, cancellationToken);
+                .BuscarPrimeiraReservaAtivaDoLivroAsync(livroId, cancellationToken);
 
 
             if (proxima == null)

@@ -58,7 +58,7 @@ namespace GerenciadorLivro.Infrastructure.Persisting.Repositories
             return possui;
         }
 
-        public async Task<bool> VerificarLivroDisponivel(int id, CancellationToken cancellationToken)
+        public async Task<bool> ExisteLivroDisponivelAsync(int id, CancellationToken cancellationToken)
         {
             var livroDisponivel = await _dbContext.Livros
                 .AnyAsync(l => l.Id == id && l.Disponivel, cancellationToken);

@@ -43,7 +43,7 @@ namespace GerenciadorLivro.Infrastructure.Persisting.Repositories
                     && r.Status == StatusReserva.Notificada
                     && r.UsuarioId != usuarioId, cancellationToken);
 
-        public async Task<bool> ExisteReservaLivroNotificada(int livroId, CancellationToken cancellationToken)
+        public async Task<bool> ExisteReservaNotificadaDoLivroAsync(int livroId, CancellationToken cancellationToken)
         {
             var jaExisteNotificada = await _dbContext.Reservas
                 .AnyAsync(r => r.LivroId == livroId && r.Status == StatusReserva.Notificada, cancellationToken);
@@ -52,10 +52,10 @@ namespace GerenciadorLivro.Infrastructure.Persisting.Repositories
         }
 
 
-        public async Task<Reserva?> BuscarReservaAtivaOrdenadaPorNome(int id, CancellationToken cancellationToken)
+        public async Task<Reserva?> BuscarPrimeiraReservaAtivaDoLivroAsync(int livroId, CancellationToken cancellationToken)
         {
             var proxima = await _dbContext.Reservas
-                .Where(r => r.LivroId == id && r.Status == StatusReserva.Ativa)
+                .Where(r => r.LivroId == livroId && r.Status == StatusReserva.Ativa)
                 .OrderBy(r => r.DataReserva)
                 .ThenBy(r => r.Id)
                 .FirstOrDefaultAsync(cancellationToken);
