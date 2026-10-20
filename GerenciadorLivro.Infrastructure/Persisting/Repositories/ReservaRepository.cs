@@ -1,6 +1,7 @@
 ﻿using GerenciadorLivro.Core.Entities;
 using GerenciadorLivro.Core.Repositories;
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 
 namespace GerenciadorLivro.Infrastructure.Persisting.Repositories
 {
@@ -12,11 +13,14 @@ namespace GerenciadorLivro.Infrastructure.Persisting.Repositories
         public async Task<Reserva?> BuscarPorIdAsync(int id, CancellationToken cancellationToken)
             => await _dbContext.Reservas.FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
 
+        private static Expression<Func<Reserva, bool>> PendenteDoUsuario(int livroId, int usuarioId)
+            => r => r.LivroId == livroId
+                && r.UsuarioId == usuarioId
+                && (r.Status == StatusReserva.Ativa || r.Status == StatusReserva.Notificada);
+
         public async Task<Reserva?> BuscarReservaPendenteDoUsuarioAsync(int livroId, int usuarioId, CancellationToken cancellationToken)
             => await _dbContext.Reservas
-                .FirstOrDefaultAsync(r => r.LivroId == livroId
-                    && r.UsuarioId == usuarioId
-                    && (r.Status == StatusReserva.Ativa || r.Status == StatusReserva.Notificada), cancellationToken);
+                .FirstOrDefaultAsync(PendenteDoUsuario(livroId, usuarioId), cancellationToken);
 
         public void RemoverReserva(Reserva reserva)
             => _dbContext.Reservas.Remove(reserva);
@@ -25,9 +29,7 @@ namespace GerenciadorLivro.Infrastructure.Persisting.Repositories
 
         public async Task<bool> ExisteReservaPendenteAsync(int livroId, int usuarioId, CancellationToken cancellationToken)
             => await _dbContext.Reservas
-                .AnyAsync(r => r.LivroId == livroId
-                    && r.UsuarioId == usuarioId
-                    && (r.Status == StatusReserva.Ativa || r.Status == StatusReserva.Notificada), cancellationToken);
+                .AnyAsync(PendenteDoUsuario(livroId, usuarioId), cancellationToken);
 
         public async Task<bool> ExisteReservaNotificadaDeOutroUsuarioAsync(int livroId, int usuarioId, CancellationToken cancellationToken)
             => await _dbContext.Reservas
