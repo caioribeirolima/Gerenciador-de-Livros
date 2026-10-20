@@ -43,14 +43,7 @@ namespace GerenciadorLivro.API.Controllers
             var result = await _mediator.Send(new ObterReservaPorIdQuery { Id = id }, cancellationToken);
 
             if (!result.Sucesso)
-            {
-                return NotFound(new ProblemDetails
-                {
-                    Title = "Reserva não encontrada",
-                    Detail = result.Erro,
-                    Status = StatusCodes.Status404NotFound,
-                });
-            }
+                return this.ErroDe(result.Tipo, result.Erro, "Reserva não encontrada");
 
             return Ok(result.Valor);
         }
@@ -75,14 +68,7 @@ namespace GerenciadorLivro.API.Controllers
             var result = await _mediator.Send(new CancelarReservaCommand { ReservaId = id }, cancellationToken);
 
             if (!result.Sucesso)
-            {
-                return BadRequest(new ProblemDetails
-                {
-                    Title = "Erro ao cancelar reserva",
-                    Detail = result.Erro,
-                    Status = StatusCodes.Status400BadRequest,
-                });
-            }
+                return this.ErroDe(result.Tipo, result.Erro, "Erro ao cancelar reserva");
 
             return NoContent();
         }

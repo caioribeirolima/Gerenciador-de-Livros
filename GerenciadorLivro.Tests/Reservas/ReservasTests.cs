@@ -5,6 +5,7 @@ using GerenciadorLivro.Application.Commands.ReservarLivro;
 using GerenciadorLivro.Application.Common;
 using GerenciadorLivro.Application.Notifications.Reservas;
 using GerenciadorLivro.Application.Queries.ListarFilaDoLivro;
+using GerenciadorLivro.Application.Queries.ObterReservaPorId;
 using GerenciadorLivro.Core.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -112,7 +113,7 @@ namespace GerenciadorLivro.Tests.Reservas
         // ---------- Cancelar ----------
 
         [Fact]
-        public async Task Cancelar_ReservaInexistenteOuComStatusInvalido_Falha()
+        public async Task Cancelar_ReservaInexistenteOuComStatusInvalido_NaoEncontradoOuConflito()
         {
             using var sp = Criar();
             await sp.SemearAsync(db =>
@@ -130,11 +131,26 @@ namespace GerenciadorLivro.Tests.Reservas
             var ativa = await EnviarAsync(sp, new CancelarReservaCommand { ReservaId = 3 });
 
             Assert.False(inexistente.Sucesso);
+            Assert.Equal(TipoErro.NaoEncontrado, inexistente.Tipo);
             Assert.False(atendida.Sucesso);
+            Assert.Equal(TipoErro.Conflito, atendida.Tipo);
             Assert.False(cancelada.Sucesso);
+            Assert.Equal(TipoErro.Conflito, cancelada.Tipo);
             Assert.True(ativa.Sucesso);
             var status = await sp.LerAsync(db => db.Reservas.Where(r => r.Id == 3).Select(r => r.Status).SingleAsync());
             Assert.Equal(StatusReserva.Cancelada, status);
+        }
+
+        [Fact]
+        public async Task ObterReservaPorId_Inexistente_NaoEncontrado()
+        {
+            using var sp = Criar();
+
+            var result = await EnviarAsync(sp, new ObterReservaPorIdQuery { Id = 99 });
+
+            Assert.False(result.Sucesso);
+            Assert.Equal(TipoErro.NaoEncontrado, result.Tipo);
+            Assert.Contains("Reserva de id 99", result.Erro);
         }
 
         // ---------- Devolução ----------

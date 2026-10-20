@@ -22,7 +22,7 @@ namespace GerenciadorLivro.Application.Queries.ObterReservaPorId
 
             if (reserva == null)
             {
-                return Result<ReservaResponse>.Falha($"Reserva de id {query.Id} não encontrada");
+                return Result<ReservaResponse>.NaoEncontrado($"Reserva de id {query.Id} não encontrada");
             }
 
             return Result<ReservaResponse>.Ok(reserva);

@@ -24,10 +24,10 @@ namespace GerenciadorLivro.Application.Commands.CancelarReserva
             var reserva = await _reservaRepository.BuscarPorIdAsync(command.ReservaId, cancellationToken);
 
             if (reserva == null)
-                return Result.Falha($"Reserva de id {command.ReservaId} não encontrada");
+                return Result.NaoEncontrado($"Reserva de id {command.ReservaId} não encontrada");
 
             if (reserva.Status != StatusReserva.Ativa && reserva.Status != StatusReserva.Notificada)
-                return Result.Falha($"Reserva de id {command.ReservaId} não pode ser cancelada: status atual é {reserva.Status}");
+                return Result.Conflito($"Reserva de id {command.ReservaId} não pode ser cancelada: status atual é {reserva.Status}");
 
             var statusAnterior = reserva.Status;
             reserva.Status = StatusReserva.Cancelada;
