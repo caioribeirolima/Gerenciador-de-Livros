@@ -22,6 +22,7 @@ namespace GerenciadorLivro.Infrastructure.Persisting.Configurations
                 .WithMany(a => a.Livros);
 
             builder.HasQueryFilter(l => !l.Excluido);
+            builder.Property(l => l.Titulo).IsRequired().HasMaxLength(200);
         }
     }
 }

@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace GerenciadorLivro.Core.Entities
+﻿namespace GerenciadorLivro.Core.Entities
 {
     public class Livro
     {

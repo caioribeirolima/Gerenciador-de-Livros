@@ -8,6 +8,7 @@ namespace GerenciadorLivro.Infrastructure.Persisting.Configurations
     {
         public void Configure(EntityTypeBuilder<Autor> builder)
         {
+            builder.Property(a => a.Nome).IsRequired().HasMaxLength(150);
         }
     }
 }
