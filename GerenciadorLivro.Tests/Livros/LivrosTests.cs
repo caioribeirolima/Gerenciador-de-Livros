@@ -38,6 +38,8 @@ namespace GerenciadorLivro.Tests.Livros
             using var sp = Criar();
             await sp.SemearAsync(db =>
             {
+                db.Categorias.Add(new Categoria { Id = 1, Nome = "Categoria 1" });
+                db.Editoras.Add(Editora(1, "Editora 1"));
                 db.Autores.AddRange(Autor(1, "Autor 1"), Autor(2, "Autor 2"));
             });
 
@@ -115,10 +117,68 @@ namespace GerenciadorLivro.Tests.Livros
             Assert.True(result.ErrosValidacao!.ContainsKey(nameof(CriarLivroCommand.AnoPublicacao)));
         }
 
+        private static CriarLivroCommand LivroValido(int categoriaId = 1, int editoraId = 1, params int[] autorIds) => new()
+        {
+            Titulo = "Livro",
+            AnoPublicacao = 2020,
+            CategoriaId = categoriaId,
+            EditoraId = editoraId,
+            AutorIds = autorIds.ToList()
+        };
+
+        [Fact]
+        public async Task CriarLivro_CategoriaInexistente_NaoEncontradoSemGravar()
+        {
+            using var sp = Criar();
+            await sp.SemearAsync(db => db.Editoras.Add(Editora(1, "Editora 1")));
+
+            var result = await EnviarAsync(sp, LivroValido(categoriaId: 99));
+
+            Assert.Equal(TipoErro.NaoEncontrado, result.Tipo);
+            Assert.Contains("Categoria de id 99", result.Erro);
+            Assert.Equal(0, await sp.LerAsync(db => db.Livros.CountAsync()));
+        }
+
+        [Fact]
+        public async Task CriarLivro_EditoraInexistente_NaoEncontradoSemGravar()
+        {
+            using var sp = Criar();
+            await sp.SemearAsync(db => db.Categorias.Add(new Categoria { Id = 1, Nome = "Categoria 1" }));
+
+            var result = await EnviarAsync(sp, LivroValido(editoraId: 99));
+
+            Assert.Equal(TipoErro.NaoEncontrado, result.Tipo);
+            Assert.Contains("Editora de id 99", result.Erro);
+            Assert.Equal(0, await sp.LerAsync(db => db.Livros.CountAsync()));
+        }
+
+        [Fact]
+        public async Task CriarLivro_AutorInexistente_NaoEncontradoSemGravar()
+        {
+            using var sp = Criar();
+            await sp.SemearAsync(db =>
+            {
+                db.Categorias.Add(new Categoria { Id = 1, Nome = "Categoria 1" });
+                db.Editoras.Add(Editora(1, "Editora 1"));
+                db.Autores.Add(Autor(1, "Autor 1"));
+            });
+
+            var result = await EnviarAsync(sp, LivroValido(1, 1, 1, 98, 99));
+
+            Assert.Equal(TipoErro.NaoEncontrado, result.Tipo);
+            Assert.Contains("98, 99", result.Erro);
+            Assert.Equal(0, await sp.LerAsync(db => db.Livros.CountAsync()));
+        }
+
         [Fact]
         public async Task CriarLivro_SemAutores_Sucesso()
         {
             using var sp = Criar();
+            await sp.SemearAsync(db =>
+            {
+                db.Categorias.Add(new Categoria { Id = 1, Nome = "Categoria 1" });
+                db.Editoras.Add(Editora(1, "Editora 1"));
+            });
 
             var result = await EnviarAsync(sp, new CriarLivroCommand
             {
