@@ -1,4 +1,5 @@
 using GerenciadorLivro.Application.Commands.RenovarEmprestimo;
+using GerenciadorLivro.Application.Common;
 using GerenciadorLivro.Core.Entities;
 using GerenciadorLivro.Infrastructure.Persisting;
 using MediatR;
@@ -166,6 +167,18 @@ namespace GerenciadorLivro.Tests.Emprestimos
             var emprestimo = await LerEmprestimoAsync(sp);
             Assert.Equal(0, emprestimo.Renovacoes);
             Assert.Null(emprestimo.DataDevolucaoReal);
+        }
+
+        [Fact]
+        public void Validacao_GuardaTipoEErrosPorCampo()
+        {
+            var erros = new Dictionary<string, string[]> { ["Titulo"] = new[] { "obrigatório" } };
+
+            var result = Result<int>.Validacao(erros);
+
+            Assert.False(result.Sucesso);
+            Assert.Equal(TipoErro.Validacao, result.Tipo);
+            Assert.Equal("obrigatório", result.ErrosValidacao!["Titulo"][0]);
         }
     }
 }
