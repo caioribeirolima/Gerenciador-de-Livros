@@ -1,6 +1,5 @@
 ﻿using GerenciadorLivro.Application.Common.Interfaces;
 using GerenciadorLivro.Core.Entities;
-using GerenciadorLivro.Infrastructure.Persisting.Configurations;
 using Microsoft.EntityFrameworkCore;
 
 namespace GerenciadorLivro.Infrastructure.Persisting
@@ -19,39 +18,7 @@ namespace GerenciadorLivro.Infrastructure.Persisting
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<Livro>()
-                .HasOne(l => l.Categoria)
-                .WithMany(c => c.Livros)
-                .HasForeignKey(l => l.CategoriaId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<Livro>()
-                .HasOne(l => l.Editora)
-                .WithMany(e => e.Livros)
-                .HasForeignKey(l => l.EditoraId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<Livro>()
-                .HasMany(l => l.Autores)
-                .WithMany(a => a.Livros);
-
-            modelBuilder.Entity<Livro>()
-                .HasQueryFilter(l => !l.Excluido);
-
-
-            modelBuilder.Entity<Emprestimo>()
-                .HasOne(e => e.Livro)
-                .WithMany(l => l.Emprestimos)
-                .HasForeignKey(e => e.LivroId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<Emprestimo>()
-                .HasOne(e => e.Usuario)
-                .WithMany(u => u.Emprestimos)
-                .HasForeignKey(e => e.UsuarioId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.ApplyConfiguration(new ReservaConfiguration());
+            modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
         }
     }
 }
