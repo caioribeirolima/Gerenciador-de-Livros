@@ -76,14 +76,7 @@ namespace GerenciadorLivro.API.Controllers
             });
 
             if (!result.Sucesso)
-            {
-                return BadRequest(new ProblemDetails
-                {
-                    Title = "Erro ao devolver empréstimo",
-                    Detail = result.Erro,
-                    Status = StatusCodes.Status400BadRequest,
-                });
-            }
+                return this.ErroDe(result.Tipo, result.Erro, "Erro ao devolver empréstimo");
 
             return NoContent();
         }

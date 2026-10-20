@@ -31,19 +31,24 @@ namespace GerenciadorLivro.Application.Commands.DevolverEmprestimo
 
             if (emprestimo == null)
             {
-                return Result.Falha($"Empréstimo de id {command.EmprestimoId} não encontrado");
+                return Result.NaoEncontrado($"Empréstimo de id {command.EmprestimoId} não encontrado");
             }
 
             if (emprestimo.DataDevolucaoReal != null)
             {
-                return Result.Falha($"Empréstimo de id {command.EmprestimoId} já foi devolvido");
+                return Result.Conflito($"Empréstimo de id {command.EmprestimoId} já foi devolvido");
             }
 
             var livro = await _livroRepository.BuscarPorIdIncluindoExcluidosAsync(emprestimo.LivroId, cancellationToken);
 
             if (livro == null)
             {
-                return Result.Falha($"Livro vinculado ao empréstimo de id {emprestimo.LivroId} não foi encontrado");
+                // A busca já inclui livros excluídos (soft delete), então null aqui significa que o
+                // empréstimo aponta para um livro que não existe mais na tabela: dado corrompido.
+                // O cliente não tem como corrigir isso (nem é erro dele), então não é 404/409:
+                // é falha de integridade do servidor. Exceção -> 500 pelo UseExceptionHandler.
+                throw new InvalidOperationException(
+                    $"Inconsistência de dados: o empréstimo {emprestimo.Id} referencia o livro {emprestimo.LivroId}, que não existe.");
             }
 
             emprestimo.DataDevolucaoReal = DateTime.Now;

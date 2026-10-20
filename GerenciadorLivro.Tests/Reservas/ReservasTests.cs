@@ -203,6 +203,53 @@ namespace GerenciadorLivro.Tests.Reservas
             Assert.NotNull(devolvido);
         }
 
+        [Fact]
+        public async Task Devolver_EmprestimoInexistente_NaoEncontrado()
+        {
+            using var sp = Criar();
+
+            var result = await EnviarAsync(sp, new DevolverEmprestimoCommand { EmprestimoId = 99 });
+
+            Assert.False(result.Sucesso);
+            Assert.Equal(TipoErro.NaoEncontrado, result.Tipo);
+            Assert.Contains("Empréstimo de id 99", result.Erro);
+        }
+
+        [Fact]
+        public async Task Devolver_EmprestimoJaDevolvido_Conflito()
+        {
+            using var sp = Criar();
+            await sp.SemearAsync(db =>
+            {
+                db.Livros.Add(Livro(1, true));
+                db.Usuarios.Add(Usuario(1));
+                var emprestimo = EmprestimoAberto(1, 1, 1);
+                emprestimo.DataDevolucaoReal = Ontem;
+                db.Emprestimos.Add(emprestimo);
+            });
+
+            var result = await EnviarAsync(sp, new DevolverEmprestimoCommand { EmprestimoId = 1 });
+
+            Assert.False(result.Sucesso);
+            Assert.Equal(TipoErro.Conflito, result.Tipo);
+            Assert.Contains("já foi devolvido", result.Erro);
+        }
+
+        [Fact]
+        public async Task Devolver_EmprestimoApontaParaLivroInexistente_LancaExcecaoDeIntegridade()
+        {
+            // Não é 404 nem 409: o cliente pediu algo válido e o dado do servidor é que está quebrado.
+            using var sp = Criar();
+            await sp.SemearAsync(db =>
+            {
+                db.Usuarios.Add(Usuario(1));
+                db.Emprestimos.Add(EmprestimoAberto(1, 99, 1));
+            });
+
+            await Assert.ThrowsAsync<InvalidOperationException>(
+                () => EnviarAsync(sp, new DevolverEmprestimoCommand { EmprestimoId = 1 }));
+        }
+
         // ---------- RegistrarEmprestimo ----------
 
         [Fact]
