@@ -235,7 +235,7 @@ namespace GerenciadorLivro.Tests.Livros
         }
 
         [Fact]
-        public async Task AdicionarAutorAoLivro_AutorJaAssociado_Falha()
+        public async Task AdicionarAutorAoLivro_AutorJaAssociado_Conflito()
         {
             using var sp = Criar();
             await sp.SemearAsync(db =>
@@ -249,11 +249,11 @@ namespace GerenciadorLivro.Tests.Livros
             var result = await EnviarAsync(sp, new AdicionarAutorAoLivroCommand { LivroId = 1, AutorId = 1 });
 
             Assert.False(result.Sucesso);
-            Assert.Contains("já está associado", result.Erro);
+            Assert.Equal(TipoErro.Conflito, result.Tipo);
         }
 
         [Fact]
-        public async Task AdicionarAutorAoLivro_AutorInexistente_Falha()
+        public async Task AdicionarAutorAoLivro_AutorInexistente_NaoEncontrado()
         {
             using var sp = Criar();
             await sp.SemearAsync(db => db.Livros.Add(Livro(1, true)));
@@ -261,7 +261,21 @@ namespace GerenciadorLivro.Tests.Livros
             var result = await EnviarAsync(sp, new AdicionarAutorAoLivroCommand { LivroId = 1, AutorId = 99 });
 
             Assert.False(result.Sucesso);
+            Assert.Equal(TipoErro.NaoEncontrado, result.Tipo);
             Assert.Contains("Autor de id 99", result.Erro);
+        }
+
+        [Fact]
+        public async Task AdicionarAutorAoLivro_LivroInexistente_NaoEncontrado()
+        {
+            using var sp = Criar();
+            await sp.SemearAsync(db => db.Autores.Add(Autor(1, "Autor 1")));
+
+            var result = await EnviarAsync(sp, new AdicionarAutorAoLivroCommand { LivroId = 99, AutorId = 1 });
+
+            Assert.False(result.Sucesso);
+            Assert.Equal(TipoErro.NaoEncontrado, result.Tipo);
+            Assert.Contains("Livro de id 99", result.Erro);
         }
 
         // ---------- CriarAutor ----------

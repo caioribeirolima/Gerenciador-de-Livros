@@ -26,16 +26,16 @@ namespace GerenciadorLivro.Application.Commands.AdicionarAutorAoLivro
                 .BuscarPorIdIncluindoAutoresAsync(request.LivroId, cancellationToken);
 
             if (livro is null)
-                return Result.Falha($"Livro de id {request.LivroId} não encontrado");
+                return Result.NaoEncontrado($"Livro de id {request.LivroId} não encontrado");
 
             var autor = await _autorRepository
                 .BuscarPorIdAsync(request.AutorId, cancellationToken);
 
             if (autor is null)
-                return Result.Falha($"Autor de id {request.AutorId} não encontrado");
+                return Result.NaoEncontrado($"Autor de id {request.AutorId} não encontrado");
 
             if (livro.Autores.Any(a => a.Id == autor.Id))
-                return Result.Falha($"O autor {request.AutorId} já está associado ao livro {request.LivroId}");
+                return Result.Conflito($"O autor {request.AutorId} já está associado ao livro {request.LivroId}");
 
             livro.Autores.Add(autor);
             await _unitOfWork.CommitAsync(cancellationToken);
