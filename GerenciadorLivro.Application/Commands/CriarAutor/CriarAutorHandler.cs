@@ -26,7 +26,7 @@ namespace GerenciadorLivro.Application.Commands.CriarAutor
 
             if (exists)
             {
-                return Result<int>.Falha($"Autor com nome {nome} já registrado");
+                return Result<int>.Conflito($"Autor com nome {nome} já registrado");
             }
 
             var autor = new Autor

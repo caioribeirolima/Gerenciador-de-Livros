@@ -27,14 +27,7 @@ namespace GerenciadorLivro.API.Controllers
             var result = await _mediator.Send(new ObterAutorPorIdQuery { Id = id });
 
             if (!result.Sucesso)
-            {
-                return NotFound(new ProblemDetails
-                {
-                    Title = $"Autor de id {id} não encontrado",
-                    Detail = result.Erro,
-                    Status = StatusCodes.Status404NotFound,
-                });
-            }
+                return this.ErroDe(result.Tipo, result.Erro, $"Autor de id {id} não encontrado");
 
             return Ok(result.Valor);
         }

@@ -28,7 +28,7 @@ namespace GerenciadorLivro.Application.Queries.ObterAutorPorId
 
             if (autor == null)
             {
-                return Result<AutorDetalhesResponse>.Falha($"Autor de id {query.Id} não encontrado");
+                return Result<AutorDetalhesResponse>.NaoEncontrado($"Autor de id {query.Id} não encontrado");
             }
 
             return Result<AutorDetalhesResponse>.Ok(autor);

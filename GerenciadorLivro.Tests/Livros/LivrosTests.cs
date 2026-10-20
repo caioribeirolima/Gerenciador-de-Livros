@@ -6,6 +6,7 @@ using GerenciadorLivro.Application.Commands.EditarLivro;
 using GerenciadorLivro.Application.Commands.ExcluirEditora;
 using GerenciadorLivro.Application.Commands.ExcluirLivro;
 using GerenciadorLivro.Application.Common;
+using GerenciadorLivro.Application.Queries.ObterAutorPorId;
 using GerenciadorLivro.Core.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -282,7 +283,7 @@ namespace GerenciadorLivro.Tests.Livros
         // ---------- CriarAutor ----------
 
         [Fact]
-        public async Task CriarAutor_NomeDuplicadoCaseDiferente_Falha()
+        public async Task CriarAutor_NomeDuplicadoCaseDiferente_Conflito()
         {
             using var sp = Criar();
             await sp.SemearAsync(db => db.Autores.Add(Autor(1, "Machado de Assis")));
@@ -290,6 +291,7 @@ namespace GerenciadorLivro.Tests.Livros
             var result = await EnviarAsync(sp, new CriarAutorCommand { Nome = "machado DE assis" });
 
             Assert.False(result.Sucesso);
+            Assert.Equal(TipoErro.Conflito, result.Tipo);
             Assert.Contains("já registrado", result.Erro);
             var total = await sp.LerAsync(db => db.Autores.CountAsync());
             Assert.Equal(1, total);
@@ -354,6 +356,18 @@ namespace GerenciadorLivro.Tests.Livros
             Assert.Equal(TipoErro.Validacao, result.Tipo);
             var total = await sp.LerAsync(db => db.Editoras.CountAsync());
             Assert.Equal(0, total);
+        }
+
+        [Fact]
+        public async Task ObterAutorPorId_Inexistente_NaoEncontrado()
+        {
+            using var sp = Criar();
+
+            var result = await EnviarAsync(sp, new ObterAutorPorIdQuery { Id = 99 });
+
+            Assert.False(result.Sucesso);
+            Assert.Equal(TipoErro.NaoEncontrado, result.Tipo);
+            Assert.Contains("Autor de id 99", result.Erro);
         }
 
         // ---------- ExcluirEditora ----------
