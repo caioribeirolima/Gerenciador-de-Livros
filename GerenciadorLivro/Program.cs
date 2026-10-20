@@ -1,3 +1,4 @@
+using FluentValidation;
 using GerenciadorLivro.Application.Commands.CriarLivro;
 using GerenciadorLivro.Application.Common.Behaviors;
 using GerenciadorLivro.Application.Common.Interfaces;
@@ -30,7 +31,10 @@ namespace GerenciadorLivro.API
                 cfg.RegisterServicesFromAssembly(typeof(CriarLivroCommand).Assembly);
                 cfg.AddOpenBehavior(typeof(LoggingBehavior<,>));
                 cfg.AddOpenBehavior(typeof(PerformanceBehavior<,>));
+                cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
             });
+
+            builder.Services.AddValidatorsFromAssembly(typeof(CriarLivroCommand).Assembly);
 
             builder.Services.AddScoped<IAppDbContext>(sp => sp.GetRequiredService<AppDbContext>());
             builder.Services.AddScoped<ILivroRepository, LivroRepository>();

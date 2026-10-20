@@ -27,9 +27,6 @@ namespace GerenciadorLivro.Application.Commands.CriarLivro
 
         public async Task<Result<int>> Handle(CriarLivroCommand command, CancellationToken cancellationToken)
         {
-            if (command.AnoPublicacao > DateTime.Now.Year)
-                return Result<int>.Falha($"Livro com ano de publicação {command.AnoPublicacao} inválido");
-
             var autores = await _autorRepository
                 .ListarPorIdsAsync(command.AutorIds, cancellationToken);
 
