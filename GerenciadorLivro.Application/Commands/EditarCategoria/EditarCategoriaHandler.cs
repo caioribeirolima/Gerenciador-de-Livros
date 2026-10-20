@@ -20,9 +20,6 @@ namespace GerenciadorLivro.Application.Commands.EditarCategoria
         {
             var nomeLimpo = command.Nome.Trim();
 
-            if (string.IsNullOrEmpty(nomeLimpo))
-                return Result.Falha("Nome da categoria inválido");
-
             var categoria = await _categoriaRepository
                 .BuscarPorIdAsync(command.Id, cancellationToken);
 

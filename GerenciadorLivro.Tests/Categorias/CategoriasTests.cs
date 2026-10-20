@@ -115,6 +115,20 @@ namespace GerenciadorLivro.Tests.Categorias
             Assert.Contains("Terror", result.Erro);
         }
 
+        [Fact]
+        public async Task Editar_NomeVazio_RetornaValidacaoSemAlterar()
+        {
+            using var sp = Criar();
+            await sp.SemearAsync(db => db.Categorias.Add(Categoria(1, "Ficção")));
+
+            var result = await EnviarAsync(sp, new EditarCategoriaCommand { Id = 1, Nome = "   " });
+
+            Assert.Equal(TipoErro.Validacao, result.Tipo);
+            Assert.True(result.ErrosValidacao!.ContainsKey(nameof(EditarCategoriaCommand.Nome)));
+            var nome = await sp.LerAsync(db => db.Categorias.Where(c => c.Id == 1).Select(c => c.Nome).SingleAsync());
+            Assert.Equal("Ficção", nome);
+        }
+
         // ---------- Excluir ----------
 
         [Fact]
