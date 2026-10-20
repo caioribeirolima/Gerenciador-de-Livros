@@ -5,6 +5,7 @@ using GerenciadorLivro.Application.Commands.ReservarLivro;
 using GerenciadorLivro.Application.Common;
 using GerenciadorLivro.Application.Notifications.Reservas;
 using GerenciadorLivro.Application.Queries.ListarFilaDoLivro;
+using GerenciadorLivro.Application.Queries.ObterEmprestimoPorId;
 using GerenciadorLivro.Application.Queries.ObterReservaPorId;
 using GerenciadorLivro.Core.Entities;
 using MediatR;
@@ -264,6 +265,18 @@ namespace GerenciadorLivro.Tests.Reservas
 
             await Assert.ThrowsAsync<InvalidOperationException>(
                 () => EnviarAsync(sp, new DevolverEmprestimoCommand { EmprestimoId = 1 }));
+        }
+
+        [Fact]
+        public async Task ObterEmprestimoPorId_Inexistente_NaoEncontrado()
+        {
+            using var sp = Criar();
+
+            var result = await EnviarAsync(sp, new ObterEmprestimoPorIdQuery { Id = 99 });
+
+            Assert.False(result.Sucesso);
+            Assert.Equal(TipoErro.NaoEncontrado, result.Tipo);
+            Assert.Contains("Empréstimo de id 99", result.Erro);
         }
 
         // ---------- RegistrarEmprestimo ----------

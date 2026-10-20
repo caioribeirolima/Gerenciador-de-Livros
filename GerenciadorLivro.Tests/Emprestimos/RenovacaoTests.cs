@@ -55,7 +55,7 @@ namespace GerenciadorLivro.Tests.Emprestimos
 
         // 2
         [Fact]
-        public async Task Renovar_EmprestimoInexistenteOuDevolvido_Falha()
+        public async Task Renovar_EmprestimoInexistenteOuDevolvido_NaoEncontradoOuConflito()
         {
             using var sp = await CriarComEmprestimoAsync(e => e.DataDevolucaoReal = DateTime.Now);
 
@@ -63,8 +63,10 @@ namespace GerenciadorLivro.Tests.Emprestimos
             var devolvido = await EnviarAsync(sp, new RenovarEmprestimoCommand { EmprestimoId = 1 });
 
             Assert.False(inexistente.Sucesso);
+            Assert.Equal(TipoErro.NaoEncontrado, inexistente.Tipo);
             Assert.Contains("não encontrado", inexistente.Erro);
             Assert.False(devolvido.Sucesso);
+            Assert.Equal(TipoErro.Conflito, devolvido.Tipo);
             Assert.Contains("já devolvido", devolvido.Erro);
         }
 
@@ -81,6 +83,7 @@ namespace GerenciadorLivro.Tests.Emprestimos
             Assert.True(primeira.Sucesso);
             Assert.True(segunda.Sucesso);
             Assert.False(terceira.Sucesso);
+            Assert.Equal(TipoErro.Conflito, terceira.Tipo);
             Assert.Contains("limite de renovações", terceira.Erro);
             Assert.Equal(2, (await LerEmprestimoAsync(sp)).Renovacoes);
         }
@@ -98,6 +101,7 @@ namespace GerenciadorLivro.Tests.Emprestimos
             var result = await EnviarAsync(sp, new RenovarEmprestimoCommand { EmprestimoId = 1 });
 
             Assert.False(result.Sucesso);
+            Assert.Equal(TipoErro.Conflito, result.Tipo);
             Assert.Contains("atrasado", result.Erro);
         }
 
@@ -130,8 +134,10 @@ namespace GerenciadorLivro.Tests.Emprestimos
             var notificada = await EnviarAsync(comNotificada, new RenovarEmprestimoCommand { EmprestimoId = 1 });
 
             Assert.False(ativa.Sucesso);
+            Assert.Equal(TipoErro.Conflito, ativa.Tipo);
             Assert.Contains("reserva de outro usuário", ativa.Erro);
             Assert.False(notificada.Sucesso);
+            Assert.Equal(TipoErro.Conflito, notificada.Tipo);
             Assert.Contains("reserva de outro usuário", notificada.Erro);
             var emprestimo = await LerEmprestimoAsync(comAtiva);
             Assert.Equal(previstaAntes, emprestimo.DataDevolucaoPrevista);
@@ -163,6 +169,7 @@ namespace GerenciadorLivro.Tests.Emprestimos
             var result = await EnviarAsync(sp, new RenovarEmprestimoCommand { EmprestimoId = 1 });
 
             Assert.False(result.Sucesso);
+            Assert.Equal(TipoErro.Conflito, result.Tipo);
             Assert.Contains("excluído do acervo", result.Erro);
             var emprestimo = await LerEmprestimoAsync(sp);
             Assert.Equal(0, emprestimo.Renovacoes);

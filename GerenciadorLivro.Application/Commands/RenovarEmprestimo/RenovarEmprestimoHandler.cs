@@ -34,7 +34,7 @@ namespace GerenciadorLivro.Application.Commands.RenovarEmprestimo
 
             if (emprestimo == null)
             {
-                return Result<int>.Falha($"Empréstimo de id {command.EmprestimoId} não encontrado");
+                return Result<int>.NaoEncontrado($"Empréstimo de id {command.EmprestimoId} não encontrado");
             }
 
             var hoje = DateTime.Now;
@@ -42,7 +42,7 @@ namespace GerenciadorLivro.Application.Commands.RenovarEmprestimo
 
             if (motivo != null)
             {
-                return Result<int>.Falha(motivo);
+                return Result<int>.Conflito(motivo);
             }
 
             // BuscarPorIdAsync respeita o filtro global, então devolve null para livro excluído.
@@ -50,14 +50,14 @@ namespace GerenciadorLivro.Application.Commands.RenovarEmprestimo
 
             if (livro == null)
             {
-                return Result<int>.Falha($"Livro de id {emprestimo.LivroId} foi excluído do acervo. O empréstimo não pode ser renovado, apenas devolvido");
+                return Result<int>.Conflito($"Livro de id {emprestimo.LivroId} foi excluído do acervo. O empréstimo não pode ser renovado, apenas devolvido");
             }
 
             var reservadoParaOutro = await _reservaRepository.ExisteReservaPendenteDeOutroUsuarioAsync(emprestimo.LivroId, emprestimo.UsuarioId, cancellationToken);
 
             if (reservadoParaOutro)
             {
-                return Result<int>.Falha($"Livro de id {emprestimo.LivroId} possui reserva de outro usuário e não pode ser renovado");
+                return Result<int>.Conflito($"Livro de id {emprestimo.LivroId} possui reserva de outro usuário e não pode ser renovado");
             }
 
             emprestimo.Renovar(_emprestimoSettings.DiasParaDevolucao, hoje);

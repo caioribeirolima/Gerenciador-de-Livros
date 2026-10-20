@@ -43,12 +43,7 @@ namespace GerenciadorLivro.API.Controllers
             var result = await _mediator.Send(new ObterEmprestimoPorIdQuery { Id = id });
 
             if (!result.Sucesso)
-                return NotFound(new ProblemDetails
-                {
-                    Title = "Empréstimo não encontrado",
-                    Detail = result.Erro,
-                    Status = StatusCodes.Status404NotFound,
-                });
+                return this.ErroDe(result.Tipo, result.Erro, "Empréstimo não encontrado");
 
             return Ok(result.Valor);
         }
@@ -90,14 +85,7 @@ namespace GerenciadorLivro.API.Controllers
                 EmprestimoId = id,
             });
             if (!result.Sucesso)
-            {
-                return BadRequest(new ProblemDetails
-                {
-                    Title = "Erro ao renovar empréstimo",
-                    Detail = result.Erro,
-                    Status = StatusCodes.Status400BadRequest,
-                });
-            }
+                return this.ErroDe(result.Tipo, result.Erro, "Erro ao renovar empréstimo");
             return NoContent();
         }
     }

@@ -22,7 +22,7 @@ namespace GerenciadorLivro.Application.Queries.ObterEmprestimoPorId
 
             if (emprestimo == null)
             {
-                return Result<EmprestimoResponse>.Falha($"Empréstimo de id {query.Id} não encontrado");
+                return Result<EmprestimoResponse>.NaoEncontrado($"Empréstimo de id {query.Id} não encontrado");
             }
 
             return Result<EmprestimoResponse>.Ok(emprestimo);
