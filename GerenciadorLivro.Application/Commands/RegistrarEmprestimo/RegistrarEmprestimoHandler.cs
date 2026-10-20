@@ -46,6 +46,14 @@ namespace GerenciadorLivro.Application.Commands.RegistrarEmprestimo
             if (!usuarioExiste)
                 return Result<int>.NaoEncontrado($"Usuário de id {command.UsuarioId} não encontrado");
 
+            // Estado do usuário, não forma da entrada: por isso fica no handler e devolve 409, não 400.
+            var emprestimosAtivos = await _emprestimoRepository
+                .ContarAtivosDoUsuarioAsync(command.UsuarioId, cancellationToken);
+
+            if (emprestimosAtivos >= _emprestimoSettings.MaximoEmprestimosAtivos)
+                return Result<int>.Conflito(
+                    $"Usuário de id {command.UsuarioId} já possui {emprestimosAtivos} empréstimo(s) ativo(s); o limite é {_emprestimoSettings.MaximoEmprestimosAtivos}");
+
             var reservaNotificadaDeOutro = await _reservaRepository
                 .ExisteReservaNotificadaDeOutroUsuarioAsync(command.LivroId, command.UsuarioId, cancellationToken);
 

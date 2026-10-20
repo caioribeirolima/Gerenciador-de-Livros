@@ -281,6 +281,86 @@ namespace GerenciadorLivro.Tests.Reservas
 
         // ---------- RegistrarEmprestimo ----------
 
+        // Livro 1 está disponível; os livros 2.. são os que o usuário já tem emprestados.
+        private static async Task<ServiceProvider> CriarComEmprestimosAtivosAsync(
+            int usuarioId, int quantidade, Action<IServiceCollection>? extras = null, int devolvidos = 0)
+        {
+            var sp = Criar(extras);
+            await sp.SemearAsync(db =>
+            {
+                db.Livros.Add(Livro(1, true));
+                db.Usuarios.AddRange(Usuario(1), Usuario(2));
+
+                for (var i = 0; i < quantidade; i++)
+                {
+                    var livroId = 10 + i;
+                    db.Livros.Add(Livro(livroId, false));
+
+                    var emprestimo = EmprestimoAberto(100 + i, livroId, usuarioId);
+                    if (i < devolvidos)
+                        emprestimo.DataDevolucaoReal = Ontem;
+                    db.Emprestimos.Add(emprestimo);
+                }
+            });
+            return sp;
+        }
+
+        [Fact]
+        public async Task RegistrarEmprestimo_TerceiroEmprestimoAtivo_Sucesso()
+        {
+            using var sp = await CriarComEmprestimosAtivosAsync(usuarioId: 1, quantidade: 2);
+
+            var result = await EnviarAsync(sp, new RegistrarEmprestimoCommand { LivroId = 1, UsuarioId = 1 });
+
+            Assert.True(result.Sucesso);
+        }
+
+        [Fact]
+        public async Task RegistrarEmprestimo_QuartoEmprestimoAtivo_ConflitoSemAlterarOLivro()
+        {
+            using var sp = await CriarComEmprestimosAtivosAsync(usuarioId: 1, quantidade: 3);
+
+            var result = await EnviarAsync(sp, new RegistrarEmprestimoCommand { LivroId = 1, UsuarioId = 1 });
+
+            Assert.False(result.Sucesso);
+            Assert.Equal(TipoErro.Conflito, result.Tipo);
+            Assert.Contains("limite é 3", result.Erro);
+            Assert.True(await sp.LerAsync(db => db.Livros.Where(l => l.Id == 1).Select(l => l.Disponivel).SingleAsync()));
+            Assert.Equal(3, await sp.LerAsync(db => db.Emprestimos.CountAsync()));
+        }
+
+        [Fact]
+        public async Task RegistrarEmprestimo_EmprestimoDevolvidoLiberaVaga()
+        {
+            using var sp = await CriarComEmprestimosAtivosAsync(usuarioId: 1, quantidade: 3, devolvidos: 1);
+
+            var result = await EnviarAsync(sp, new RegistrarEmprestimoCommand { LivroId = 1, UsuarioId = 1 });
+
+            Assert.True(result.Sucesso);
+        }
+
+        [Fact]
+        public async Task RegistrarEmprestimo_LimiteEPorUsuario()
+        {
+            using var sp = await CriarComEmprestimosAtivosAsync(usuarioId: 1, quantidade: 3);
+
+            var result = await EnviarAsync(sp, new RegistrarEmprestimoCommand { LivroId = 1, UsuarioId = 2 });
+
+            Assert.True(result.Sucesso);
+        }
+
+        [Fact]
+        public async Task RegistrarEmprestimo_LimiteVemDaConfiguracao()
+        {
+            using var sp = await CriarComEmprestimosAtivosAsync(usuarioId: 1, quantidade: 1,
+                extras: s => s.Configure<EmprestimoSettings>(o => o.MaximoEmprestimosAtivos = 1));
+
+            var result = await EnviarAsync(sp, new RegistrarEmprestimoCommand { LivroId = 1, UsuarioId = 1 });
+
+            Assert.Equal(TipoErro.Conflito, result.Tipo);
+            Assert.Contains("limite é 1", result.Erro);
+        }
+
         [Fact]
         public async Task RegistrarEmprestimo_SemReservas_ContinuaFuncionando()
         {

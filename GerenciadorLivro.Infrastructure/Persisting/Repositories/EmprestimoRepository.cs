@@ -24,5 +24,10 @@ namespace GerenciadorLivro.Infrastructure.Persisting.Repositories
 
             return usuarioEstaComLivro;
         }
+
+        // Ativo = ainda não devolvido, inclusive de livro excluído do acervo (o empréstimo continua em aberto).
+        public async Task<int> ContarAtivosDoUsuarioAsync(int usuarioId, CancellationToken cancellationToken)
+            => await _dbContext.Emprestimos
+                .CountAsync(e => e.UsuarioId == usuarioId && e.DataDevolucaoReal == null, cancellationToken);
     }
 }
