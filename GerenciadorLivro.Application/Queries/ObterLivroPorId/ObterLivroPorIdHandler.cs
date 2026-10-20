@@ -30,7 +30,7 @@ namespace GerenciadorLivro.Application.Queries.ObterLivroPorId
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (livro is null)
-                return Result<LivroResponse>.Falha($"Livro de id {query.Id} não encontrado");
+                return Result<LivroResponse>.NaoEncontrado($"Livro de id {query.Id} não encontrado");
 
             return Result<LivroResponse>.Ok(livro);
         }

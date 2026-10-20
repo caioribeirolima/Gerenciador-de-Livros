@@ -7,6 +7,8 @@ using GerenciadorLivro.Application.Commands.ExcluirEditora;
 using GerenciadorLivro.Application.Commands.ExcluirLivro;
 using GerenciadorLivro.Application.Common;
 using GerenciadorLivro.Application.Queries.ObterAutorPorId;
+using GerenciadorLivro.Application.Queries.ObterLivroDetalhes;
+using GerenciadorLivro.Application.Queries.ObterLivroPorId;
 using GerenciadorLivro.Core.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -274,6 +276,32 @@ namespace GerenciadorLivro.Tests.Livros
             await sp.SemearAsync(db => db.Autores.Add(Autor(1, "Autor 1")));
 
             var result = await EnviarAsync(sp, new AdicionarAutorAoLivroCommand { LivroId = 99, AutorId = 1 });
+
+            Assert.False(result.Sucesso);
+            Assert.Equal(TipoErro.NaoEncontrado, result.Tipo);
+            Assert.Contains("Livro de id 99", result.Erro);
+        }
+
+        // ---------- Obter livro ----------
+
+        [Fact]
+        public async Task ObterLivroPorId_Inexistente_NaoEncontrado()
+        {
+            using var sp = Criar();
+
+            var result = await EnviarAsync(sp, new ObterLivroPorIdQuery { Id = 99 });
+
+            Assert.False(result.Sucesso);
+            Assert.Equal(TipoErro.NaoEncontrado, result.Tipo);
+            Assert.Contains("Livro de id 99", result.Erro);
+        }
+
+        [Fact]
+        public async Task ObterLivroDetalhes_Inexistente_NaoEncontrado()
+        {
+            using var sp = Criar();
+
+            var result = await EnviarAsync(sp, new ObterLivroDetalhesQuery { Id = 99 });
 
             Assert.False(result.Sucesso);
             Assert.Equal(TipoErro.NaoEncontrado, result.Tipo);

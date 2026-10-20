@@ -62,14 +62,7 @@ namespace GerenciadorLivro.Controllers
             var result = await _mediator.Send(new ObterLivroPorIdQuery { Id = id });
 
             if (!result.Sucesso)
-            {
-                return NotFound(new ProblemDetails
-                {
-                    Title = "Livro não encontrado",
-                    Detail = result.Erro,
-                    Status = StatusCodes.Status404NotFound
-                });
-            }
+                return this.ErroDe(result.Tipo, result.Erro, "Livro não encontrado");
 
             return Ok(result.Valor);
         }
@@ -81,14 +74,7 @@ namespace GerenciadorLivro.Controllers
             var result = await _mediator.Send(new ObterLivroDetalhesQuery { Id = id });
 
             if (!result.Sucesso)
-            {
-                return NotFound(new ProblemDetails
-                {
-                    Title = "Livro não encontrado",
-                    Detail = result.Erro,
-                    Status = StatusCodes.Status404NotFound
-                });
-            }
+                return this.ErroDe(result.Tipo, result.Erro, "Livro não encontrado");
 
             return Ok(result.Valor);
         }
