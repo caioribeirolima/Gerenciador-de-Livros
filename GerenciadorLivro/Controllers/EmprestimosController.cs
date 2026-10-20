@@ -1,4 +1,5 @@
-﻿using GerenciadorLivro.Application.Commands.DevolverEmprestimo;
+﻿using GerenciadorLivro.API.Extensions;
+using GerenciadorLivro.Application.Commands.DevolverEmprestimo;
 using GerenciadorLivro.Application.Commands.RegistrarEmprestimo;
 using GerenciadorLivro.Application.Commands.RenovarEmprestimo;
 using GerenciadorLivro.Application.DTOs.InputModels;
@@ -32,12 +33,7 @@ namespace GerenciadorLivro.API.Controllers
 
             if (!result.Sucesso)
             {
-                return BadRequest(new ProblemDetails
-                {
-                    Title = "Erro ao registrar empréstimo",
-                    Detail = result.Erro,
-                    Status = StatusCodes.Status400BadRequest,
-                });
+                return this.ErroDe(result.Tipo, result.Erro, "Erro ao registrar empréstimo");
             }
 
             return CreatedAtRoute("BuscarEmprestimoPorId", new { id = result.Valor }, new { id = result.Valor });

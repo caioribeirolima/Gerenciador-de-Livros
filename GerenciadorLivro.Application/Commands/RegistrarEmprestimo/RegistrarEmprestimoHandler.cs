@@ -36,21 +36,21 @@ namespace GerenciadorLivro.Application.Commands.RegistrarEmprestimo
             var livro = await _livroRepository.BuscarPorIdAsync(command.LivroId, cancellationToken);
 
             if (livro == null)
-                return Result<int>.Falha($"Livro de id {command.LivroId} não encontrado");
+                return Result<int>.NaoEncontrado($"Livro de id {command.LivroId} não encontrado");
 
             if (!livro.Disponivel)
-                return Result<int>.Falha($"Livro de id {command.LivroId} não está disponível");
+                return Result<int>.Conflito($"Livro de id {command.LivroId} não está disponível");
 
             var usuarioExiste = await _usuarioRepository.ExisteAsync(command.UsuarioId, cancellationToken);
 
             if (!usuarioExiste)
-                return Result<int>.Falha($"Usuário de id {command.UsuarioId} não encontrado");
+                return Result<int>.NaoEncontrado($"Usuário de id {command.UsuarioId} não encontrado");
 
             var reservaNotificadaDeOutro = await _reservaRepository
                 .ExisteReservaNotificadaDeOutroUsuarioAsync(command.LivroId, command.UsuarioId, cancellationToken);
 
             if (reservaNotificadaDeOutro)
-                return Result<int>.Falha($"Livro de id {command.LivroId} está reservado para outro usuário");
+                return Result<int>.Conflito($"Livro de id {command.LivroId} está reservado para outro usuário");
 
             var reservaDoUsuario = await _reservaRepository
                 .BuscarReservaPendenteDoUsuarioAsync(command.LivroId, command.UsuarioId, cancellationToken);

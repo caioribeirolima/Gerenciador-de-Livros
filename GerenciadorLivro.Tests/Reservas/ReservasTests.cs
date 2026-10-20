@@ -1,11 +1,12 @@
+using FluentValidation;
 using GerenciadorLivro.Application.Commands.CancelarReserva;
 using GerenciadorLivro.Application.Commands.DevolverEmprestimo;
 using GerenciadorLivro.Application.Commands.RegistrarEmprestimo;
 using GerenciadorLivro.Application.Commands.ReservarLivro;
+using GerenciadorLivro.Application.Common;
 using GerenciadorLivro.Application.Notifications.Reservas;
 using GerenciadorLivro.Application.Queries.ListarFilaDoLivro;
 using GerenciadorLivro.Core.Entities;
-using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -210,6 +211,7 @@ namespace GerenciadorLivro.Tests.Reservas
             Assert.True(result.Sucesso);
             var livroDisponivel = await sp.LerAsync(db => db.Livros.Where(l => l.Id == 1).Select(l => l.Disponivel).SingleAsync());
             Assert.False(livroDisponivel);
+            Assert.Equal(TipoErro.NaoEncontrado, result.Tipo);
         }
 
         [Fact]
@@ -229,6 +231,7 @@ namespace GerenciadorLivro.Tests.Reservas
             Assert.Contains("reservado para outro usuário", result.Erro);
             var emprestimos = await sp.LerAsync(db => db.Emprestimos.CountAsync());
             Assert.Equal(0, emprestimos);
+            Assert.Equal(TipoErro.NaoEncontrado, result.Tipo);
         }
 
         [Fact]
@@ -248,6 +251,7 @@ namespace GerenciadorLivro.Tests.Reservas
             var reserva = await sp.LerAsync(db => db.Reservas.SingleAsync(r => r.Id == 1));
             Assert.Equal(StatusReserva.Atendida, reserva.Status);
             Assert.NotNull(reserva.DataEncerramento);
+            Assert.Equal(TipoErro.NaoEncontrado, result.Tipo);
         }
 
         [Fact]
@@ -264,6 +268,41 @@ namespace GerenciadorLivro.Tests.Reservas
             Assert.Contains(nameof(RegistrarEmprestimoCommand.UsuarioId), campos);
             var emprestimos = await sp.LerAsync(db => db.Emprestimos.CountAsync());
             Assert.Equal(0, emprestimos);
+
+        }
+
+        [Fact]
+        public async Task RegistrarEmprestimo_LivroInexistente_NaoEncontrado()
+        {
+            using var sp = Criar();
+            await sp.SemearAsync(db => db.Usuarios.Add(Usuario(1)));
+
+            var result = await EnviarAsync(sp, new RegistrarEmprestimoCommand { LivroId = 99, UsuarioId = 1 });
+
+            Assert.False(result.Sucesso);
+            Assert.Equal(TipoErro.NaoEncontrado, result.Tipo);
+        }
+
+        [Fact]
+        public async Task RegistrarEmprestimo_UsuarioInexistente_NaoEncontrado()
+        {
+            using var sp = Criar();
+            await sp.SemearAsync(db => db.Livros.Add(Livro(1, true)));
+
+            var result = await EnviarAsync(sp, new RegistrarEmprestimoCommand { LivroId = 1, UsuarioId = 99 });
+
+            Assert.Equal(TipoErro.NaoEncontrado, result.Tipo);
+        }
+
+        [Fact]
+        public async Task RegistrarEmprestimo_LivroIndisponivel_Conflito()
+        {
+            using var sp = Criar();
+            await sp.SemearAsync(db => { db.Livros.Add(Livro(1, false)); db.Usuarios.Add(Usuario(1)); });
+
+            var result = await EnviarAsync(sp, new RegistrarEmprestimoCommand { LivroId = 1, UsuarioId = 1 });
+
+            Assert.Equal(TipoErro.Conflito, result.Tipo);
         }
 
         // ---------- Query e nota de design ----------
