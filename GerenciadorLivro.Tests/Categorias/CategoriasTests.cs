@@ -1,6 +1,7 @@
 using GerenciadorLivro.Application.Commands.CriarCategoria;
 using GerenciadorLivro.Application.Commands.EditarCategoria;
 using GerenciadorLivro.Application.Commands.ExcluirCategoria;
+using GerenciadorLivro.Application.Common;
 using GerenciadorLivro.Core.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -58,6 +59,31 @@ namespace GerenciadorLivro.Tests.Categorias
 
             Assert.False(result.Sucesso);
             Assert.Contains("já está cadastrada", result.Erro);
+        }
+
+        [Fact]
+        public async Task Criar_NomeVazio_RetornaValidacaoSemGravar()
+        {
+            using var sp = Criar();
+
+            var result = await EnviarAsync(sp, new CriarCategoriaCommand { Nome = "   " });
+
+            Assert.Equal(TipoErro.Validacao, result.Tipo);
+            Assert.True(result.ErrosValidacao!.ContainsKey(nameof(CriarCategoriaCommand.Nome)));
+            var total = await sp.LerAsync(db => db.Categorias.CountAsync());
+            Assert.Equal(0, total);
+        }
+
+        [Fact]
+        public async Task Criar_NomeMaiorQue100_RetornaValidacaoSemGravar()
+        {
+            using var sp = Criar();
+
+            var result = await EnviarAsync(sp, new CriarCategoriaCommand { Nome = new string('a', 101) });
+
+            Assert.Equal(TipoErro.Validacao, result.Tipo);
+            var total = await sp.LerAsync(db => db.Categorias.CountAsync());
+            Assert.Equal(0, total);
         }
 
         // ---------- Editar ----------

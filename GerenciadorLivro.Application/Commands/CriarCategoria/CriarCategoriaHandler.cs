@@ -23,11 +23,6 @@ namespace GerenciadorLivro.Application.Commands.CriarCategoria
 
             var stringLimpa = command.Nome.Trim();
 
-            if (string.IsNullOrEmpty(stringLimpa))
-            {
-                return Result<int>.Falha("Nome da categoria inválido");
-            }
-
             var existsCategoria = await _categoriaRepository
                 .ExisteComNomeAsync(stringLimpa, cancellationToken);
 
