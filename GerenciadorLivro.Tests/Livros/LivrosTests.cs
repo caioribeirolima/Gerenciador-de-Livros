@@ -97,6 +97,32 @@ namespace GerenciadorLivro.Tests.Livros
             Assert.Equal(3, livro.EditoraId);
         }
 
+        [Fact]
+        public async Task EditarLivro_LivroExcluido_FalhaSemAlterarRegistro()
+        {
+            using var sp = Criar();
+            await sp.SemearAsync(db =>
+            {
+                var livro = Livro(1, true);
+                livro.Excluido = true;
+                db.Livros.Add(livro);
+            });
+
+            var result = await EnviarAsync(sp, new EditarLivroCommand
+            {
+                Id = 1,
+                Titulo = "Novo título",
+                AnoPublicacao = 2021,
+                CategoriaId = 2,
+                EditoraId = 3
+            });
+
+            Assert.False(result.Sucesso);
+            Assert.Contains("não encontrado", result.Erro);
+            var livro = await sp.LerAsync(db => db.Livros.IgnoreQueryFilters().SingleAsync(l => l.Id == 1));
+            Assert.Equal("Livro 1", livro.Titulo);
+        }
+
         // ---------- ExcluirLivro ----------
 
         [Fact]

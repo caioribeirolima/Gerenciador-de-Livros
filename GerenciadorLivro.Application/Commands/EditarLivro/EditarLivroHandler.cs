@@ -19,7 +19,7 @@ namespace GerenciadorLivro.Application.Commands.EditarLivro
 
         public async Task<Result> Handle(EditarLivroCommand request, CancellationToken cancellationToken)
         {
-            var livro = await _livroRepository.BuscarPorIdIncluindoExcluidosAsync(request.Id, cancellationToken);
+            var livro = await _livroRepository.BuscarPorIdAsync(request.Id, cancellationToken);
 
             if (livro is null)
                 return Result.Falha($"Livro de id {request.Id} não encontrado");
