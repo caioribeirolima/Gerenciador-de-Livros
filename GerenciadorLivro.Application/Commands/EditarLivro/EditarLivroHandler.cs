@@ -22,7 +22,7 @@ namespace GerenciadorLivro.Application.Commands.EditarLivro
             var livro = await _livroRepository.BuscarPorIdAsync(request.Id, cancellationToken);
 
             if (livro is null)
-                return Result.Falha($"Livro de id {request.Id} não encontrado");
+                return Result.NaoEncontrado($"Livro de id {request.Id} não encontrado");
 
             livro.Titulo = request.Titulo;
             livro.AnoPublicacao = request.AnoPublicacao;

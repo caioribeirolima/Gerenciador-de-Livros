@@ -136,7 +136,7 @@ namespace GerenciadorLivro.Tests.Livros
         }
 
         [Fact]
-        public async Task EditarLivro_LivroExcluido_FalhaSemAlterarRegistro()
+        public async Task EditarLivro_LivroExcluido_NaoEncontradoSemAlterarRegistro()
         {
             using var sp = Criar();
             await sp.SemearAsync(db =>
@@ -156,7 +156,7 @@ namespace GerenciadorLivro.Tests.Livros
             });
 
             Assert.False(result.Sucesso);
-            Assert.Contains("não encontrado", result.Erro);
+            Assert.Equal(TipoErro.NaoEncontrado, result.Tipo);
             var livro = await sp.LerAsync(db => db.Livros.IgnoreQueryFilters().SingleAsync(l => l.Id == 1));
             Assert.Equal("Livro 1", livro.Titulo);
         }
