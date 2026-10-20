@@ -1,5 +1,6 @@
 ﻿using GerenciadorLivro.Application.Commands.DevolverEmprestimo;
 using GerenciadorLivro.Application.Commands.RegistrarEmprestimo;
+using GerenciadorLivro.Application.Commands.RenovarEmprestimo;
 using GerenciadorLivro.Application.DTOs.InputModels;
 using GerenciadorLivro.Application.Queries.ListarEmprestimosAtivos;
 using GerenciadorLivro.Application.Queries.ListarEmprestimosAtrasados;
@@ -90,6 +91,26 @@ namespace GerenciadorLivro.API.Controllers
                 });
             }
 
+            return NoContent();
+        }
+
+
+        [HttpPut("{id}/renovar")]
+        public async Task<ActionResult> RenovarEmprestimoAsync(int id)
+        {
+            var result = await _mediator.Send(new RenovarEmprestimoCommand
+            {
+                EmprestimoId = id,
+            });
+            if (!result.Sucesso)
+            {
+                return BadRequest(new ProblemDetails
+                {
+                    Title = "Erro ao renovar empréstimo",
+                    Detail = result.Erro,
+                    Status = StatusCodes.Status400BadRequest,
+                });
+            }
             return NoContent();
         }
     }
