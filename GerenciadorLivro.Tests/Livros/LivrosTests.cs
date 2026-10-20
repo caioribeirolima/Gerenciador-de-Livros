@@ -317,6 +317,19 @@ namespace GerenciadorLivro.Tests.Livros
             Assert.True(result.Sucesso);
         }
 
+        [Fact]
+        public async Task CriarAutor_NomeVazio_RetornaValidacaoSemGravar()
+        {
+            using var sp = Criar();
+
+            var result = await EnviarAsync(sp, new CriarAutorCommand { Nome = "   " });
+
+            Assert.Equal(TipoErro.Validacao, result.Tipo);
+            Assert.True(result.ErrosValidacao!.ContainsKey(nameof(CriarAutorCommand.Nome)));
+            var total = await sp.LerAsync(db => db.Autores.CountAsync());
+            Assert.Equal(0, total);
+        }
+
         // ---------- ExcluirEditora ----------
 
         [Fact]

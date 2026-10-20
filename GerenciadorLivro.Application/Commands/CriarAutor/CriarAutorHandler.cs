@@ -19,17 +19,7 @@ namespace GerenciadorLivro.Application.Commands.CriarAutor
 
         public async Task<Result<int>> Handle(CriarAutorCommand command, CancellationToken cancellationToken)
         {
-            if (string.IsNullOrWhiteSpace(command.Nome))
-            {
-                return Result<int>.Falha("Nome de autor vazio");
-            }
-
             var nome = command.Nome.Trim();
-
-            if (nome.Length > 150)
-            {
-                return Result<int>.Falha("Nome não pode ter mais que 150 caracteres");
-            }
 
             var exists = await _autorRepository
                 .ExisteComNomeAsync(nome, cancellationToken);
