@@ -7,13 +7,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace GerenciadorLivro.Application.Queries.ListarAutores
 {
-    public class ListarAutoresHandler : IRequestHandler<ListarAutoresQuery, List<AutorResponse>>
+    public class ListarAutoresHandler : IRequestHandler<ListarAutoresQuery, Result<List<AutorResponse>>>
     {
         private readonly IAppDbContext _dbContext;
         public ListarAutoresHandler(IAppDbContext dbContext) => _dbContext = dbContext;
 
 
-        public async Task<List<AutorResponse>> Handle(ListarAutoresQuery query, CancellationToken cancellationToken)
+        public async Task<Result<List<AutorResponse>>> Handle(ListarAutoresQuery query, CancellationToken cancellationToken)
         {
             var pagina = Math.Max(query.Pagina, 1);
             var tamanhoPagina = Math.Clamp(query.TamanhoPagina, 1, 100);
@@ -37,7 +37,7 @@ namespace GerenciadorLivro.Application.Queries.ListarAutores
                 })
                 .ToListAsync(cancellationToken);
 
-            return lista;
+            return Result<List<AutorResponse>>.Ok(lista);
         }
     }
 }

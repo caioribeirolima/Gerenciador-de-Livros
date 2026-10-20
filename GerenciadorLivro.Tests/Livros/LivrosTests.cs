@@ -6,6 +6,7 @@ using GerenciadorLivro.Application.Commands.EditarLivro;
 using GerenciadorLivro.Application.Commands.ExcluirEditora;
 using GerenciadorLivro.Application.Commands.ExcluirLivro;
 using GerenciadorLivro.Application.Common;
+using GerenciadorLivro.Application.Queries.ListarAutores;
 using GerenciadorLivro.Application.Queries.ObterAutorPorId;
 using GerenciadorLivro.Application.Queries.ObterLivroDetalhes;
 using GerenciadorLivro.Application.Queries.ObterLivroPorId;
@@ -457,6 +458,19 @@ namespace GerenciadorLivro.Tests.Livros
             Assert.False(result.Sucesso);
             Assert.Equal(TipoErro.NaoEncontrado, result.Tipo);
             Assert.Contains("Autor de id 99", result.Erro);
+        }
+
+        // ---------- ListarAutores ----------
+
+        [Fact]
+        public async Task ListarAutores_PaginaZero_RetornaValidacao()
+        {
+            using var sp = Criar();
+
+            var result = await EnviarAsync(sp, new ListarAutoresQuery { Pagina = 0 });
+
+            Assert.Equal(TipoErro.Validacao, result.Tipo);
+            Assert.True(result.ErrosValidacao!.ContainsKey(nameof(ListarAutoresQuery.Pagina)));
         }
 
         // ---------- ExcluirEditora ----------

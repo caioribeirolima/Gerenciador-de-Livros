@@ -49,7 +49,10 @@ namespace GerenciadorLivro.API.Controllers
                 TamanhoPagina = tamanhoPagina,
             });
 
-            return Ok(result);
+            if (!result.Sucesso)
+                return this.ErroDe(result.Tipo, result.Erro, "Erro na listagem de autores", result.ErrosValidacao);
+
+            return Ok(result.Valor);
         }
 
 

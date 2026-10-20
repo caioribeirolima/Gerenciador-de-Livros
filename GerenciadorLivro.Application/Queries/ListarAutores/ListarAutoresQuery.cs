@@ -4,7 +4,7 @@ using MediatR;
 
 namespace GerenciadorLivro.Application.Queries.ListarAutores
 {
-    public class ListarAutoresQuery : IRequest<List<AutorResponse>>
+    public class ListarAutoresQuery : IRequest<Result<List<AutorResponse>>>
     {
         public string? Nome { get; set; }
         public int Pagina { get; set; } = 1;
