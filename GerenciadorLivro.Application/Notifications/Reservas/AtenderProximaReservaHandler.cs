@@ -82,7 +82,7 @@ namespace GerenciadorLivro.Application.Notifications.Reservas
             catch (DbUpdateException ex)
             {
                 var outraNotificada = await _reservaRepository
-                    .ExisteReservaNotificadaDeOutroUsuarioAsync(livroId, proxima.UsuarioId, cancellationToken);
+                    .ExisteOutraReservaNotificadaDoLivroAsync(livroId, proxima.Id, cancellationToken);
                 
                 if (!outraNotificada)
                 {

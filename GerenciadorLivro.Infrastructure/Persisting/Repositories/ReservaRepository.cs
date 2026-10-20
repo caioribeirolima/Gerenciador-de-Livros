@@ -43,6 +43,12 @@ namespace GerenciadorLivro.Infrastructure.Persisting.Repositories
                     && r.Status == StatusReserva.Notificada
                     && r.UsuarioId != usuarioId, cancellationToken);
 
+        public async Task<bool> ExisteOutraReservaNotificadaDoLivroAsync(int livroId, int reservaIdIgnorada, CancellationToken cancellationToken)
+            => await _dbContext.Reservas
+                .AnyAsync(r => r.LivroId == livroId
+                    && r.Status == StatusReserva.Notificada
+                    && r.Id != reservaIdIgnorada, cancellationToken);
+
         public async Task<bool> ExisteReservaNotificadaDoLivroAsync(int livroId, CancellationToken cancellationToken)
         {
             var jaExisteNotificada = await _dbContext.Reservas

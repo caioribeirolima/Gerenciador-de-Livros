@@ -8,6 +8,7 @@ namespace GerenciadorLivro.Core.Repositories
         Task<Reserva?> BuscarReservaPendenteDoUsuarioAsync(int livroId, int usuarioId, CancellationToken cancellationToken);
         Task<Reserva?> BuscarPrimeiraReservaAtivaDoLivroAsync(int livroId, CancellationToken cancellationToken);
         Task<bool> ExisteReservaNotificadaDeOutroUsuarioAsync(int livroId, int usuarioId, CancellationToken cancellationToken);
+        Task<bool> ExisteOutraReservaNotificadaDoLivroAsync(int livroId, int reservaIdIgnorada, CancellationToken cancellationToken);
         Task<bool> ExisteReservaPendenteDeOutroUsuarioAsync(int livroId, int usuarioId, CancellationToken cancellationToken);
         Task<bool> ExisteReservaPendenteAsync(int livroId, int usuarioId, CancellationToken cancellationToken);
         Task<bool> ExisteReservaNotificadaDoLivroAsync(int livroId, CancellationToken cancellationToken);
