@@ -1,4 +1,7 @@
+using FluentValidation;
+using GerenciadorLivro.Application.Commands.CriarLivro;
 using GerenciadorLivro.Application.Commands.ReservarLivro;
+using GerenciadorLivro.Application.Common.Behaviors;
 using GerenciadorLivro.Application.Common.Interfaces;
 using GerenciadorLivro.Core.Entities;
 using GerenciadorLivro.Core.Repositories;
@@ -28,7 +31,15 @@ namespace GerenciadorLivro.Tests.Reservas
             services.AddScoped<IAutorRepository, AutorRepository>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.Configure<EmprestimoSettings>(s => s.DiasParaDevolucao = 7);
-            services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(ReservarLivroCommand).Assembly));
+            services.AddMediatR(cfg =>
+            {
+                cfg.RegisterServicesFromAssembly(typeof(ReservarLivroCommand).Assembly);
+                cfg.AddOpenBehavior(typeof(LoggingBehavior<,>));
+                cfg.AddOpenBehavior(typeof(PerformanceBehavior<,>));
+                cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
+            });
+
+            services.AddValidatorsFromAssembly(typeof(ReservarLivroCommand).Assembly);
 
             extras?.Invoke(services);
             return services.BuildServiceProvider();

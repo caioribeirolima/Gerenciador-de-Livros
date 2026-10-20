@@ -5,6 +5,7 @@ using GerenciadorLivro.Application.Commands.ReservarLivro;
 using GerenciadorLivro.Application.Notifications.Reservas;
 using GerenciadorLivro.Application.Queries.ListarFilaDoLivro;
 using GerenciadorLivro.Core.Entities;
+using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -247,6 +248,22 @@ namespace GerenciadorLivro.Tests.Reservas
             var reserva = await sp.LerAsync(db => db.Reservas.SingleAsync(r => r.Id == 1));
             Assert.Equal(StatusReserva.Atendida, reserva.Status);
             Assert.NotNull(reserva.DataEncerramento);
+        }
+
+        [Fact]
+        public async Task RegistrarEmprestimo_IdsInvalidos_ReportaOsDoisErrosSemGravar()
+        {
+            using var sp = Criar();
+            await sp.SemearAsync(db => { db.Livros.Add(Livro(1, true)); db.Usuarios.Add(Usuario(1)); });
+
+            var ex = await Assert.ThrowsAsync<ValidationException>(() =>
+                EnviarAsync(sp, new RegistrarEmprestimoCommand { LivroId = 0, UsuarioId = -1 }));
+
+            var campos = ex.Errors.Select(e => e.PropertyName).ToList();
+            Assert.Contains(nameof(RegistrarEmprestimoCommand.LivroId), campos);
+            Assert.Contains(nameof(RegistrarEmprestimoCommand.UsuarioId), campos);
+            var emprestimos = await sp.LerAsync(db => db.Emprestimos.CountAsync());
+            Assert.Equal(0, emprestimos);
         }
 
         // ---------- Query e nota de design ----------

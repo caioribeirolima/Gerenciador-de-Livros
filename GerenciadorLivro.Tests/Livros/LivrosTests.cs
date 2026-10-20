@@ -5,6 +5,7 @@ using GerenciadorLivro.Application.Commands.EditarLivro;
 using GerenciadorLivro.Application.Commands.ExcluirEditora;
 using GerenciadorLivro.Application.Commands.ExcluirLivro;
 using GerenciadorLivro.Core.Entities;
+using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -58,18 +59,53 @@ namespace GerenciadorLivro.Tests.Livros
         {
             using var sp = Criar();
 
-            var result = await EnviarAsync(sp, new CriarLivroCommand
+            var ex = await Assert.ThrowsAsync<ValidationException>(() => EnviarAsync(sp, new CriarLivroCommand
             {
                 Titulo = "Do futuro",
                 AnoPublicacao = DateTime.Now.Year + 1,
                 CategoriaId = 1,
                 EditoraId = 1
-            });
+            }));
 
-            Assert.False(result.Sucesso);
-            Assert.Contains("ano de publicação", result.Erro);
+            Assert.Contains(ex.Errors, e => e.PropertyName == nameof(CriarLivroCommand.AnoPublicacao));
             var totalLivros = await sp.LerAsync(db => db.Livros.CountAsync());
             Assert.Equal(0, totalLivros);
+        }
+
+        [Fact]
+        public async Task CriarLivro_TituloVazio_LancaValidationExceptionSemGravar()
+        {
+            using var sp = Criar();
+
+            var ex = await Assert.ThrowsAsync<ValidationException>(() => EnviarAsync(sp, new CriarLivroCommand
+            {
+                Titulo = "",
+                AnoPublicacao = 2020,
+                CategoriaId = 1,
+                EditoraId = 1
+            }));
+
+            Assert.Contains(ex.Errors, e => e.PropertyName == nameof(CriarLivroCommand.Titulo));
+            var totalLivros = await sp.LerAsync(db => db.Livros.CountAsync());
+            Assert.Equal(0, totalLivros);
+        }
+
+        [Fact]
+        public async Task CriarLivro_TituloVazioEAnoFuturo_ReportaOsDoisErros()
+        {
+            using var sp = Criar();
+
+            var ex = await Assert.ThrowsAsync<ValidationException>(() => EnviarAsync(sp, new CriarLivroCommand
+            {
+                Titulo = "",
+                AnoPublicacao = DateTime.Now.Year + 1,
+                CategoriaId = 1,
+                EditoraId = 1
+            }));
+
+            var campos = ex.Errors.Select(e => e.PropertyName).ToList();
+            Assert.Contains(nameof(CriarLivroCommand.Titulo), campos);
+            Assert.Contains(nameof(CriarLivroCommand.AnoPublicacao), campos);
         }
 
         // ---------- EditarLivro ----------
