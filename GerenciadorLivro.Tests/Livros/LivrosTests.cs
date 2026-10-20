@@ -4,8 +4,8 @@ using GerenciadorLivro.Application.Commands.CriarLivro;
 using GerenciadorLivro.Application.Commands.EditarLivro;
 using GerenciadorLivro.Application.Commands.ExcluirEditora;
 using GerenciadorLivro.Application.Commands.ExcluirLivro;
+using GerenciadorLivro.Application.Common;
 using GerenciadorLivro.Core.Entities;
-using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -59,33 +59,35 @@ namespace GerenciadorLivro.Tests.Livros
         {
             using var sp = Criar();
 
-            var ex = await Assert.ThrowsAsync<ValidationException>(() => EnviarAsync(sp, new CriarLivroCommand
+            var result = await EnviarAsync(sp, new CriarLivroCommand
             {
                 Titulo = "Do futuro",
                 AnoPublicacao = DateTime.Now.Year + 1,
                 CategoriaId = 1,
                 EditoraId = 1
-            }));
+            });
 
-            Assert.Contains(ex.Errors, e => e.PropertyName == nameof(CriarLivroCommand.AnoPublicacao));
+            Assert.Equal(TipoErro.Validacao, result.Tipo);
+            Assert.True(result.ErrosValidacao!.ContainsKey(nameof(CriarLivroCommand.AnoPublicacao)));
             var totalLivros = await sp.LerAsync(db => db.Livros.CountAsync());
             Assert.Equal(0, totalLivros);
         }
 
         [Fact]
-        public async Task CriarLivro_TituloVazio_LancaValidationExceptionSemGravar()
+        public async Task CriarLivro_TituloVazio_RetornaValidacaoSemGravar()
         {
             using var sp = Criar();
 
-            var ex = await Assert.ThrowsAsync<ValidationException>(() => EnviarAsync(sp, new CriarLivroCommand
+            var result = await EnviarAsync(sp, new CriarLivroCommand
             {
                 Titulo = "",
                 AnoPublicacao = 2020,
                 CategoriaId = 1,
                 EditoraId = 1
-            }));
+            });
 
-            Assert.Contains(ex.Errors, e => e.PropertyName == nameof(CriarLivroCommand.Titulo));
+            Assert.Equal(TipoErro.Validacao, result.Tipo);
+            Assert.True(result.ErrosValidacao!.ContainsKey(nameof(CriarLivroCommand.Titulo)));
             var totalLivros = await sp.LerAsync(db => db.Livros.CountAsync());
             Assert.Equal(0, totalLivros);
         }
@@ -95,17 +97,17 @@ namespace GerenciadorLivro.Tests.Livros
         {
             using var sp = Criar();
 
-            var ex = await Assert.ThrowsAsync<ValidationException>(() => EnviarAsync(sp, new CriarLivroCommand
+            var result = await EnviarAsync(sp, new CriarLivroCommand
             {
                 Titulo = "",
                 AnoPublicacao = DateTime.Now.Year + 1,
                 CategoriaId = 1,
                 EditoraId = 1
-            }));
+            });
 
-            var campos = ex.Errors.Select(e => e.PropertyName).ToList();
-            Assert.Contains(nameof(CriarLivroCommand.Titulo), campos);
-            Assert.Contains(nameof(CriarLivroCommand.AnoPublicacao), campos);
+            Assert.Equal(TipoErro.Validacao, result.Tipo);
+            Assert.True(result.ErrosValidacao!.ContainsKey(nameof(CriarLivroCommand.Titulo)));
+            Assert.True(result.ErrosValidacao!.ContainsKey(nameof(CriarLivroCommand.AnoPublicacao)));
         }
 
         // ---------- EditarLivro ----------
@@ -160,21 +162,22 @@ namespace GerenciadorLivro.Tests.Livros
         }
 
         [Fact]
-        public async Task EditarLivro_TituloVazio_LancaValidationExceptionSemAlterarRegistro()
+        public async Task EditarLivro_TituloVazio_RetornaValidacaoSemAlterarRegistro()
         {
             using var sp = Criar();
             await sp.SemearAsync(db => db.Livros.Add(Livro(1, true)));
 
-            var ex = await Assert.ThrowsAsync<ValidationException>(() => EnviarAsync(sp, new EditarLivroCommand
+            var result = await EnviarAsync(sp, new EditarLivroCommand
             {
                 Id = 1,
                 Titulo = "",
                 AnoPublicacao = 2021,
                 CategoriaId = 2,
                 EditoraId = 3
-            }));
+            });
 
-            Assert.Contains(ex.Errors, e => e.PropertyName == nameof(EditarLivroCommand.Titulo));
+            Assert.Equal(TipoErro.Validacao, result.Tipo);
+            Assert.True(result.ErrosValidacao!.ContainsKey(nameof(EditarLivroCommand.Titulo)));
             var livro = await sp.LerAsync(db => db.Livros.SingleAsync(l => l.Id == 1));
             Assert.Equal("Livro 1", livro.Titulo);
         }
@@ -267,14 +270,14 @@ namespace GerenciadorLivro.Tests.Livros
         }
 
         [Fact]
-        public async Task CriarAutor_NomeMaiorQueOLimite_LancaValidationExceptionSemGravar()
+        public async Task CriarAutor_NomeMaiorQueOLimite_RetornaValidacaoSemGravar()
         {
             using var sp = Criar();
 
-            var ex = await Assert.ThrowsAsync<ValidationException>(() =>
-                EnviarAsync(sp, new CriarAutorCommand { Nome = new string('a', 151) }));
+            var result = await EnviarAsync(sp, new CriarAutorCommand { Nome = new string('a', 151) });
 
-            Assert.Contains(ex.Errors, e => e.PropertyName == nameof(CriarAutorCommand.Nome));
+            Assert.Equal(TipoErro.Validacao, result.Tipo);
+            Assert.True(result.ErrosValidacao!.ContainsKey(nameof(CriarAutorCommand.Nome)));
             var total = await sp.LerAsync(db => db.Autores.CountAsync());
             Assert.Equal(0, total);
         }

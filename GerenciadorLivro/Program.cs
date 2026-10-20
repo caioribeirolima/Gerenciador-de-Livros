@@ -42,7 +42,6 @@ namespace GerenciadorLivro.API
             builder.Services.AddScoped<IEditoraRepository, EditoraRepository>();
             builder.Services.AddScoped<IAutorRepository, AutorRepository>();
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-            builder.Services.AddExceptionHandler<ValidationExceptionHandler>();
             builder.Services.AddProblemDetails();
 
             builder.Services.Configure<EmprestimoSettings>(

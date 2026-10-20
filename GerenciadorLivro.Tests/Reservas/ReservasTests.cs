@@ -1,4 +1,3 @@
-using FluentValidation;
 using GerenciadorLivro.Application.Commands.CancelarReserva;
 using GerenciadorLivro.Application.Commands.DevolverEmprestimo;
 using GerenciadorLivro.Application.Commands.RegistrarEmprestimo;
@@ -258,12 +257,11 @@ namespace GerenciadorLivro.Tests.Reservas
             using var sp = Criar();
             await sp.SemearAsync(db => { db.Livros.Add(Livro(1, true)); db.Usuarios.Add(Usuario(1)); });
 
-            var ex = await Assert.ThrowsAsync<ValidationException>(() =>
-                EnviarAsync(sp, new RegistrarEmprestimoCommand { LivroId = 0, UsuarioId = -1 }));
+            var result = await EnviarAsync(sp, new RegistrarEmprestimoCommand { LivroId = 0, UsuarioId = -1 });
 
-            var campos = ex.Errors.Select(e => e.PropertyName).ToList();
-            Assert.Contains(nameof(RegistrarEmprestimoCommand.LivroId), campos);
-            Assert.Contains(nameof(RegistrarEmprestimoCommand.UsuarioId), campos);
+            Assert.Equal(TipoErro.Validacao, result.Tipo);
+            Assert.True(result.ErrosValidacao!.ContainsKey(nameof(RegistrarEmprestimoCommand.LivroId)));
+            Assert.True(result.ErrosValidacao!.ContainsKey(nameof(RegistrarEmprestimoCommand.UsuarioId)));
             var emprestimos = await sp.LerAsync(db => db.Emprestimos.CountAsync());
             Assert.Equal(0, emprestimos);
         }
