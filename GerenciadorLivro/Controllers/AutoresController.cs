@@ -1,4 +1,5 @@
-﻿using GerenciadorLivro.Application.Commands.CriarAutor;
+﻿using GerenciadorLivro.API.Extensions;
+using GerenciadorLivro.Application.Commands.CriarAutor;
 using GerenciadorLivro.Application.DTOs.InputModels;
 using GerenciadorLivro.Application.DTOs.ViewModels;
 using GerenciadorLivro.Application.Queries.ListarAutores;
@@ -69,14 +70,7 @@ namespace GerenciadorLivro.API.Controllers
             });
 
             if (!result.Sucesso)
-            {
-                return BadRequest(new ProblemDetails
-                {
-                    Title = "Erro ao criar autor",
-                    Detail = result.Erro,
-                    Status = StatusCodes.Status400BadRequest,
-                });
-            }
+                return this.ErroDe(result.Tipo, result.Erro, "Erro na criação do autor", result.ErrosValidacao);
 
             return CreatedAtRoute("ObterAutorPorId", new { id = result.Valor }, new { id = result.Valor });
         }

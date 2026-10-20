@@ -1,3 +1,4 @@
+using GerenciadorLivro.API.Extensions;
 using GerenciadorLivro.Application.Commands.CriarEditora;
 using GerenciadorLivro.Application.Commands.ExcluirEditora;
 using GerenciadorLivro.Application.Common;
@@ -43,14 +44,7 @@ namespace GerenciadorLivro.Controllers
             });
 
             if (!result.Sucesso)
-            {
-                return BadRequest(new ProblemDetails
-                {
-                    Title = "Erro ao criar editora",
-                    Detail = result.Erro,
-                    Status = StatusCodes.Status400BadRequest,
-                });
-            }
+                return this.ErroDe(result.Tipo, result.Erro, "Erro na criação da editora", result.ErrosValidacao);
 
             return Created($"/api/editoras/{result.Valor}", new { id = result.Valor });
         }

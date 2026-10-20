@@ -1,4 +1,5 @@
-﻿using GerenciadorLivro.Application.Commands.AdicionarAutorAoLivro;
+﻿using GerenciadorLivro.API.Extensions;
+using GerenciadorLivro.Application.Commands.AdicionarAutorAoLivro;
 using GerenciadorLivro.Application.Commands.CriarLivro;
 using GerenciadorLivro.Application.Commands.EditarLivro;
 using GerenciadorLivro.Application.Commands.ExcluirLivro;
@@ -116,14 +117,7 @@ namespace GerenciadorLivro.Controllers
             var result = await _mediator.Send(command);
 
             if (!result.Sucesso)
-            {
-                return BadRequest(new ProblemDetails
-                {
-                    Title = "Erro na criação do livro",
-                    Detail = result.Erro,
-                    Status = StatusCodes.Status400BadRequest
-                });
-            }
+                return this.ErroDe(result.Tipo, result.Erro, "Erro na criação do livro", result.ErrosValidacao);
 
             return CreatedAtRoute("ObterLivroPorId", new { id = result.Valor }, new { id = result.Valor });
         }
@@ -142,14 +136,7 @@ namespace GerenciadorLivro.Controllers
             });
 
             if (!result.Sucesso)
-            {
-                return NotFound(new ProblemDetails
-                {
-                    Title = "Livro não encontrado",
-                    Detail = result.Erro,
-                    Status = StatusCodes.Status404NotFound
-                });
-            }
+                return this.ErroDe(result.Tipo, result.Erro, "Erro na edição do livro", result.ErrosValidacao);
 
             return NoContent();
         }

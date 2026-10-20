@@ -32,9 +32,7 @@ namespace GerenciadorLivro.API.Controllers
             });
 
             if (!result.Sucesso)
-            {
-                return this.ErroDe(result.Tipo, result.Erro, "Erro ao registrar empréstimo");
-            }
+                return this.ErroDe(result.Tipo, result.Erro, "Erro na criação do empréstimo", result.ErrosValidacao);
 
             return CreatedAtRoute("BuscarEmprestimoPorId", new { id = result.Valor }, new { id = result.Valor });
         }

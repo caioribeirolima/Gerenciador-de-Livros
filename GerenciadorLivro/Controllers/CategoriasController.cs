@@ -1,3 +1,4 @@
+using GerenciadorLivro.API.Extensions;
 using GerenciadorLivro.Application.Commands.CriarCategoria;
 using GerenciadorLivro.Application.Commands.EditarCategoria;
 using GerenciadorLivro.Application.Commands.ExcluirCategoria;
@@ -61,14 +62,7 @@ namespace GerenciadorLivro.Controllers
             var result = await _mediator.Send(new CriarCategoriaCommand { Nome = request.Nome });
 
             if (!result.Sucesso)
-            {
-                return BadRequest(new ProblemDetails
-                {
-                    Title = "Erro ao criar categoria",
-                    Detail = result.Erro,
-                    Status = StatusCodes.Status400BadRequest
-                });
-            }
+                return this.ErroDe(result.Tipo, result.Erro, "Erro na criação da categoria", result.ErrosValidacao);
 
             return CreatedAtRoute("ObterCategoriaPorId", new { id = result.Valor }, new { id = result.Valor });
         }
@@ -79,14 +73,7 @@ namespace GerenciadorLivro.Controllers
             var result = await _mediator.Send(new EditarCategoriaCommand { Id = id, Nome = request.Nome });
 
             if (!result.Sucesso)
-            {
-                return BadRequest(new ProblemDetails
-                {
-                    Title = "Erro ao editar categoria",
-                    Detail = result.Erro,
-                    Status = StatusCodes.Status400BadRequest
-                });
-            }
+                return this.ErroDe(result.Tipo, result.Erro, "Erro na edição da categoria", result.ErrosValidacao);
 
             return NoContent();
         }
