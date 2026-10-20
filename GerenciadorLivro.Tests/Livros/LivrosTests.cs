@@ -114,6 +114,67 @@ namespace GerenciadorLivro.Tests.Livros
             Assert.True(result.ErrosValidacao!.ContainsKey(nameof(CriarLivroCommand.AnoPublicacao)));
         }
 
+        [Fact]
+        public async Task CriarLivro_SemAutores_Sucesso()
+        {
+            using var sp = Criar();
+
+            var result = await EnviarAsync(sp, new CriarLivroCommand
+            {
+                Titulo = "Livro sem autores",
+                AnoPublicacao = 2020,
+                CategoriaId = 1,
+                EditoraId = 1,
+                AutorIds = new List<int>()
+            });
+
+            Assert.True(result.Sucesso);
+            var totalLivros = await sp.LerAsync(db => db.Livros.CountAsync());
+            Assert.Equal(1, totalLivros);
+        }
+
+        [Fact]
+        public async Task CriarLivro_AutoresDuplicados_RetornaValidacaoSemGravar()
+        {
+            using var sp = Criar();
+            await sp.SemearAsync(db => db.Autores.Add(Autor(1, "Autor 1")));
+
+            var result = await EnviarAsync(sp, new CriarLivroCommand
+            {
+                Titulo = "Livro",
+                AnoPublicacao = 2020,
+                CategoriaId = 1,
+                EditoraId = 1,
+                AutorIds = new List<int> { 1, 1 }
+            });
+
+            Assert.Equal(TipoErro.Validacao, result.Tipo);
+            Assert.True(result.ErrosValidacao!.ContainsKey(nameof(CriarLivroCommand.AutorIds)));
+            var totalLivros = await sp.LerAsync(db => db.Livros.CountAsync());
+            Assert.Equal(0, totalLivros);
+        }
+
+        [Fact]
+        public async Task CriarLivro_AutorIdZero_RetornaValidacaoNoIndiceSemGravar()
+        {
+            using var sp = Criar();
+            await sp.SemearAsync(db => db.Autores.Add(Autor(1, "Autor 1")));
+
+            var result = await EnviarAsync(sp, new CriarLivroCommand
+            {
+                Titulo = "Livro",
+                AnoPublicacao = 2020,
+                CategoriaId = 1,
+                EditoraId = 1,
+                AutorIds = new List<int> { 1, 0 }
+            });
+
+            Assert.Equal(TipoErro.Validacao, result.Tipo);
+            Assert.Equal(new[] { "AutorIds[1]" }, result.ErrosValidacao!.Keys);
+            var totalLivros = await sp.LerAsync(db => db.Livros.CountAsync());
+            Assert.Equal(0, totalLivros);
+        }
+
         // ---------- EditarLivro ----------
 
         [Fact]
