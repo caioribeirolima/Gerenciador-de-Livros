@@ -8,7 +8,7 @@ namespace GerenciadorLivro.Application.Commands.CriarLivro
         {
             RuleFor(x => x.Titulo)
                 .NotEmpty().WithMessage("O título do livro é obrigatório.")
-                .MaximumLength(100).WithMessage("O título do livro não pode exceder 100 caracteres.");
+                .MaximumLength(200).WithMessage("O título do livro não pode exceder 200 caracteres.");
 
             RuleFor(x => x.AnoPublicacao)
                 .LessThanOrEqualTo(_ => DateTime.Now.Year)
