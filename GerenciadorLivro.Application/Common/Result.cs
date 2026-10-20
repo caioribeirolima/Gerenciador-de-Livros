@@ -1,6 +1,6 @@
 ﻿namespace GerenciadorLivro.Application.Common
 {
-    public class Result<T>
+    public class Result<T> : IFalhaDeValidacao<Result<T>>
     {
         public bool Sucesso { get; }
         public T? Valor { get; }
@@ -26,7 +26,7 @@
     }
 
 
-    public class Result
+    public class Result : IFalhaDeValidacao<Result>
     {
         public bool Sucesso { get; }
         public string? Erro { get; }
